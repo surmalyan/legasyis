@@ -76,6 +76,12 @@ export function getTodayQuestion(lang: "ru" | "en"): string {
   return questions[dayOfYear % questions.length];
 }
 
+export function getRandomQuestion(lang: "ru" | "en", exclude?: string): string {
+  const questions = lang === "ru" ? questionsRu : questionsEn;
+  const filtered = exclude ? questions.filter((q) => q !== exclude) : questions;
+  return filtered[Math.floor(Math.random() * filtered.length)];
+}
+
 export function generateStory(question: string, answer: string, lang: "ru" | "en"): string {
   // Simple local story generation — can be replaced with AI later
   if (lang === "ru") {
