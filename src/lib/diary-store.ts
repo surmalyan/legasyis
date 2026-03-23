@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export interface DiaryEntry {
   id: string;
   date: string;
@@ -6,6 +8,55 @@ export interface DiaryEntry {
   story: string;
   audioUrl?: string;
 }
+
+// ── Supabase operations ──
+
+export async function saveEntryToDb(entry: {
+  question: string;
+  original_text: string;
+  ai_story: string;
+}): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("not_authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .insert({
+      user_id: user.id,
+      question: entry.question,
+      original_text: entry.original_text,
+      ai_story: entry.ai_story,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return data.id;
+}
+
+export async function getEntriesFromDb(): Promise<DiaryEntry[]> {
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    date: row.created_at,
+    question: row.question,
+    answer: row.original_text,
+    story: row.ai_story,
+  }));
+}
+
+export async function deleteEntryFromDb(id: string): Promise<void> {
+  const { error } = await supabase.from("entries").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// ── Legacy localStorage helpers (kept for offline fallback) ──
 
 const STORAGE_KEY = "diary-entries";
 
@@ -33,7 +84,8 @@ export function getEntryById(id: string): DiaryEntry | undefined {
   return getEntries().find((e) => e.id === id);
 }
 
-// Questions pool
+// ── Questions pool ──
+
 const questionsRu = [
   "Какой момент из детства вы никогда не забудете?",
   "Что сегодня сделало вас счастливым?",
@@ -88,12 +140,4 @@ export function getRandomQuestion(lang: "ru" | "en", exclude?: string): string {
   const questions = lang === "ru" ? questionsRu : questionsEn;
   const filtered = exclude ? questions.filter((q) => q !== exclude) : questions;
   return filtered[Math.floor(Math.random() * filtered.length)];
-}
-
-export function generateStory(question: string, answer: string, lang: "ru" | "en"): string {
-  // Simple local story generation — can be replaced with AI later
-  if (lang === "ru") {
-    return `${new Date().toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}.\n\nСегодня я задал(а) себе вопрос: «${question}»\n\n${answer}\n\nЭтот момент стоит помнить. Каждый день — это страница моей истории.`;
-  }
-  return `${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}.\n\nToday I asked myself: "${question}"\n\n${answer}\n\nThis moment is worth remembering. Every day is a page of my story.`;
 }
