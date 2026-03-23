@@ -7,7 +7,7 @@ import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
@@ -39,7 +39,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="flex items-center justify-center px-6 pt-14 pb-2">
-        <img src={logo} alt="MYLEGACY" className="h-10 object-contain" />
+        <img src={logo} alt="MYLEGACY" className="h-12 object-contain logo-breathe" />
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
