@@ -41,26 +41,27 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    if (!email.trim()) return;
 
     setLoading(true);
     try {
-      if (isLogin) {
+      if (isForgot) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) toast.error(t.error);
+        else toast.success(t.resetSent);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          toast.error(t.invalidCredentials);
-        }
+        if (error) toast.error(t.invalidCredentials);
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
-        if (error) {
-          toast.error(t.error);
-        } else {
-          toast.success(t.checkEmail);
-        }
+        if (error) toast.error(t.error);
+        else toast.success(t.checkEmail);
       }
     } catch {
       toast.error(t.error);
