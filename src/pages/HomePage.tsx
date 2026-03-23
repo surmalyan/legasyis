@@ -1,10 +1,12 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { getTodayQuestion, getRandomQuestion } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
+import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw } from "lucide-react";
 import LanguageToggle from "@/components/LanguageToggle";
+import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
 
 const HomePage = () => {
@@ -13,6 +15,10 @@ const HomePage = () => {
   const [question, setQuestion] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed } = useSubscription();
+
+  useEffect(() => {
+    scheduleNotification(lang);
+  }, [lang]);
 
   const handleNewQuestion = useCallback(() => {
     setIsSwapping(true);
@@ -39,6 +45,7 @@ const HomePage = () => {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
         <div className="w-full max-w-md">
+          <NotificationBanner />
           <p className="text-sm text-muted-foreground font-medium text-center mb-1">
             {new Date().toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", {
               weekday: "long", day: "numeric", month: "long",
