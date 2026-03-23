@@ -1,6 +1,6 @@
 import { useI18n } from "@/lib/i18n";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BookOpen, Home, Settings, User } from "lucide-react";
+import { BookOpen, Home, Settings, User, GitBranch, Download } from "lucide-react";
 
 const BottomNav = () => {
   const { lang } = useI18n();
@@ -10,8 +10,9 @@ const BottomNav = () => {
   const tabs = [
     { path: "/", label: lang === "ru" ? "Главная" : "Home", icon: Home },
     { path: "/profile", label: lang === "ru" ? "Анкета" : "Profile", icon: User },
+    { path: "/family-tree", label: lang === "ru" ? "Древо" : "Tree", icon: GitBranch },
     { path: "/archive", label: lang === "ru" ? "Архив" : "Archive", icon: BookOpen },
-    { path: "/settings", label: lang === "ru" ? "Настройки" : "Settings", icon: Settings },
+    { path: "/export", label: lang === "ru" ? "PDF" : "PDF", icon: Download },
   ];
 
   return (

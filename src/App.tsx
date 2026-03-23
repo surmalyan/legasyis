@@ -55,6 +55,8 @@ const App = () => (
               <Route path="/archive" element={<ProtectedRoute><ArchivePage /></ProtectedRoute>} />
               <Route path="/paywall" element={<ProtectedRoute><PaywallPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+              <Route path="/family-tree" element={<ProtectedRoute><FamilyTreePage /></ProtectedRoute>} />
+              <Route path="/export" element={<ProtectedRoute><ExportPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
