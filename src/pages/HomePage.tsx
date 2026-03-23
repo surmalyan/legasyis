@@ -37,9 +37,8 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="flex items-center justify-between px-6 pt-14 pb-2">
+      <header className="flex items-center justify-center px-6 pt-14 pb-2">
         <h1 className="text-lg font-semibold tracking-tight text-foreground">{t("appName")}</h1>
-        <LanguageToggle />
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
