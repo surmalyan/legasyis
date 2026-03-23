@@ -30,6 +30,10 @@ const AuthPage = () => {
     invalidCredentials: lang === "ru" ? "Неверный email или пароль" : "Invalid email or password",
   };
 
+  if (!authLoading && user) {
+    return <Navigate to="/" replace />;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) return;
