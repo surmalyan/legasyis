@@ -2,6 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { ArrowLeft, Share2, Home, Archive } from "lucide-react";
 import { toast } from "sonner";
+import InfinitySymbol from "@/components/InfinitySymbol";
 import type { DiaryEntry } from "@/lib/diary-store";
 
 const ResultPage = () => {
