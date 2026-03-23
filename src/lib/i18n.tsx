@@ -4,7 +4,7 @@ export type Lang = "ru" | "en";
 
 const translations = {
   ru: {
-    appName: "Мой Дневник",
+    appName: "MYLEGACY",
     questionOfTheDay: "Вопрос дня",
     writeAnswer: "Написать ответ",
     recordAudio: "Записать голос",
@@ -15,7 +15,7 @@ const translations = {
     home: "Главная",
     story: "История",
     noEntries: "Пока нет записей",
-    startWriting: "Начните свой дневник сегодня",
+    startWriting: "Начните свою историю сегодня",
     generatedStory: "Ваша история",
     viewStory: "Читать историю",
     today: "Сегодня",
@@ -29,7 +29,7 @@ const translations = {
     shareStory: "Поделиться",
   },
   en: {
-    appName: "My Diary",
+    appName: "MYLEGACY",
     questionOfTheDay: "Question of the Day",
     writeAnswer: "Write Answer",
     recordAudio: "Record Voice",
@@ -40,7 +40,7 @@ const translations = {
     home: "Home",
     story: "Story",
     noEntries: "No entries yet",
-    startWriting: "Start your diary today",
+    startWriting: "Start your legacy today",
     generatedStory: "Your Story",
     viewStory: "Read Story",
     today: "Today",

@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
+import logo from "@/assets/logo.jpg";
 
 const AuthPage = () => {
   const { lang } = useI18n();
@@ -13,8 +14,7 @@ const AuthPage = () => {
   const [loading, setLoading] = useState(false);
 
   const t = {
-    title: lang === "ru" ? "Мой Дневник" : "My Diary",
-    subtitle: lang === "ru" ? "Ваша личная книга жизни" : "Your personal life book",
+    subtitle: lang === "ru" ? "Сохрани свою историю для будущих поколений" : "Preserve your story for future generations",
     login: lang === "ru" ? "Войти" : "Sign In",
     signup: lang === "ru" ? "Создать аккаунт" : "Sign Up",
     email: lang === "ru" ? "Электронная почта" : "Email",
@@ -63,13 +63,10 @@ const AuthPage = () => {
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 pb-16">
-        {/* Logo area */}
+        {/* Logo */}
         <div className="flex flex-col items-center mb-12 animate-fade-in">
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-5">
-            <BookOpen size={36} className="text-primary" />
-          </div>
-          <h1 className="text-2xl font-semibold text-foreground">{t.title}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t.subtitle}</p>
+          <img src={logo} alt="MYLEGACY" className="w-28 h-28 object-contain mb-4" />
+          <p className="text-sm text-muted-foreground mt-1 text-center max-w-[260px]">{t.subtitle}</p>
         </div>
 
         {/* Form */}
