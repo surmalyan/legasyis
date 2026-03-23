@@ -9,7 +9,8 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft, Globe } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 import BottomNav from "@/components/BottomNav";
 
 const SettingsPage = () => {
