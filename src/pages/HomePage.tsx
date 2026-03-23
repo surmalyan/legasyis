@@ -7,7 +7,7 @@ import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
