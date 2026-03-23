@@ -5,7 +5,6 @@ import { getTodayQuestion, getRandomQuestion } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw } from "lucide-react";
-import LanguageToggle from "@/components/LanguageToggle";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
 
