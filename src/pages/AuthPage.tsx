@@ -13,6 +13,7 @@ const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { lang } = useI18n();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgot, setIsForgot] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
