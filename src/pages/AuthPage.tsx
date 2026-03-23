@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +10,7 @@ import InfinitySymbol from "@/components/InfinitySymbol";
 import logo from "@/assets/logo.jpg";
 
 const AuthPage = () => {
+  const { user, loading: authLoading } = useAuth();
   const { lang } = useI18n();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -26,6 +29,10 @@ const AuthPage = () => {
     error: lang === "ru" ? "Произошла ошибка" : "Something went wrong",
     invalidCredentials: lang === "ru" ? "Неверный email или пароль" : "Invalid email or password",
   };
+
+  if (!authLoading && user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
