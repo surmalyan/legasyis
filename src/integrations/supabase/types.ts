@@ -41,6 +41,66 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          advice_to_descendants: string | null
+          avatar_url: string | null
+          biggest_dream: string | null
+          birth_date: string | null
+          city: string | null
+          completion_step: number
+          created_at: string
+          family: string | null
+          full_name: string | null
+          grateful_for: string | null
+          hobbies: string | null
+          id: string
+          life_motto: string | null
+          occupation: string | null
+          updated_at: string
+          user_id: string
+          would_change: string | null
+        }
+        Insert: {
+          advice_to_descendants?: string | null
+          avatar_url?: string | null
+          biggest_dream?: string | null
+          birth_date?: string | null
+          city?: string | null
+          completion_step?: number
+          created_at?: string
+          family?: string | null
+          full_name?: string | null
+          grateful_for?: string | null
+          hobbies?: string | null
+          id?: string
+          life_motto?: string | null
+          occupation?: string | null
+          updated_at?: string
+          user_id: string
+          would_change?: string | null
+        }
+        Update: {
+          advice_to_descendants?: string | null
+          avatar_url?: string | null
+          biggest_dream?: string | null
+          birth_date?: string | null
+          city?: string | null
+          completion_step?: number
+          created_at?: string
+          family?: string | null
+          full_name?: string | null
+          grateful_for?: string | null
+          hobbies?: string | null
+          id?: string
+          life_motto?: string | null
+          occupation?: string | null
+          updated_at?: string
+          user_id?: string
+          would_change?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
