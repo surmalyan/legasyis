@@ -80,7 +80,7 @@ const HomePage = () => {
             </button>
 
             <button
-              onClick={() => navigate("/entry", { state: { question, mode: "voice" } })}
+              onClick={() => navigate("/record", { state: { question } })}
               className="w-full flex items-center justify-center gap-3 bg-secondary text-secondary-foreground rounded-2xl py-5 text-lg font-medium transition-all active:scale-[0.97] hover:bg-accent"
             >
               <Mic size={22} />
