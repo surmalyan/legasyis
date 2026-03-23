@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
+import InfinitySymbol from "@/components/InfinitySymbol";
 import logo from "@/assets/logo.jpg";
 
 const AuthPage = () => {
