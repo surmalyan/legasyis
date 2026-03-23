@@ -3,10 +3,10 @@ import { Navigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
-import InfinitySymbol from "@/components/InfinitySymbol";
 import logo from "@/assets/logo.png";
 
 const AuthPage = () => {
