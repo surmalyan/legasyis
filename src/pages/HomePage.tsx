@@ -16,6 +16,10 @@ const HomePage = () => {
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed } = useSubscription();
 
+  useEffect(() => {
+    scheduleNotification(lang);
+  }, [lang]);
+
   const handleNewQuestion = useCallback(() => {
     setIsSwapping(true);
     setTimeout(() => {
