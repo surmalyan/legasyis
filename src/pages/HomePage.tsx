@@ -7,6 +7,7 @@ import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
+import logo from "@/assets/logo.jpg";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
@@ -38,7 +39,7 @@ const HomePage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="flex items-center justify-center px-6 pt-14 pb-2">
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">{t("appName")}</h1>
+        <img src={logo} alt="MYLEGACY" className="h-10 object-contain" />
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
@@ -55,7 +56,7 @@ const HomePage = () => {
           </p>
 
           <div className={`bg-card rounded-3xl px-8 py-12 shadow-sm border border-border mb-4 transition-all duration-250 ${isSwapping ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
-            <p className="text-[1.65rem] leading-[1.45] font-light text-foreground text-center">{question}</p>
+            <p className="text-[1.65rem] leading-[1.45] font-serif-display font-light text-foreground text-center">{question}</p>
           </div>
 
           <div className="flex justify-center mb-10">
@@ -65,7 +66,6 @@ const HomePage = () => {
             </button>
           </div>
 
-          {/* Free entries counter */}
           {!loading && !isSubscribed && (
             <div className="text-center mb-4">
               <p className="text-xs text-muted-foreground">

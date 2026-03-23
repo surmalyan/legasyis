@@ -58,7 +58,7 @@ const ArchivePage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <header className="flex items-center justify-between px-6 pt-14 pb-2">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">{t("archive")}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground font-serif-display">{t("archive")}</h1>
         <div className="flex items-center gap-2">
           <LanguageToggle />
           <button onClick={signOut} className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors">
