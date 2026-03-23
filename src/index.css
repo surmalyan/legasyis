@@ -110,3 +110,50 @@
     font-family: 'Cormorant Garamond', 'Georgia', serif;
   }
 }
+
+/* Infinity draw animation */
+@keyframes draw-infinity {
+  0% {
+    stroke-dashoffset: 600;
+  }
+  50% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -600;
+  }
+}
+
+@keyframes float-up {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes sprout {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.infinity-draw {
+  stroke-dasharray: 600;
+  animation: draw-infinity 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float-up 3s ease-in-out infinite;
+}
+
+.animate-sprout {
+  transform-origin: bottom center;
+  animation: sprout 1.2s ease-out forwards;
+}
