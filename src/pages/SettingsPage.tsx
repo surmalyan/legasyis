@@ -58,9 +58,6 @@ const SettingsPage = () => {
     setPreferredMinute(m);
     saveNotificationSettings({ ...getNotificationSettings(), preferredHour: h, preferredMinute: m });
   };
-    setFrequency(f);
-    saveNotificationSettings({ ...getNotificationSettings(), frequency: f });
-  };
 
   const handleSignOut = async () => {
     await signOut();
