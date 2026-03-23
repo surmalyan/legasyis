@@ -16,6 +16,7 @@ import BottomNav from "@/components/BottomNav";
 const SettingsPage = () => {
   const { lang, setLang } = useI18n();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const [notifEnabled, setNotifEnabled] = useState(false);
