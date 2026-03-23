@@ -45,6 +45,7 @@ const HomePage = () => {
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
         <div className="w-full max-w-md">
+          <NotificationBanner />
           <p className="text-sm text-muted-foreground font-medium text-center mb-1">
             {new Date().toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", {
               weekday: "long", day: "numeric", month: "long",
