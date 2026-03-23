@@ -11,6 +11,7 @@ import RecordPage from "./pages/RecordPage";
 import ResultPage from "./pages/ResultPage";
 import ArchivePage from "./pages/ArchivePage";
 import AuthPage from "./pages/AuthPage";
+import PaywallPage from "./pages/PaywallPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
