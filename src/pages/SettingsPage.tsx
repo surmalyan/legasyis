@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
+import type { NotificationFrequency } from "@/lib/notifications";
 import { useAuth } from "@/lib/auth-context";
 import {
   isNotificationSupported,
@@ -20,7 +21,7 @@ const SettingsPage = () => {
   const navigate = useNavigate();
 
   const [notifEnabled, setNotifEnabled] = useState(false);
-  const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
+  const [frequency, setFrequency] = useState<NotificationFrequency>("daily");
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ const SettingsPage = () => {
     }
   };
 
-  const handleFrequencyChange = (f: "daily" | "weekly") => {
+  const handleFrequencyChange = (f: NotificationFrequency) => {
     setFrequency(f);
     saveNotificationSettings({ ...getNotificationSettings(), frequency: f });
   };
@@ -60,6 +61,7 @@ const SettingsPage = () => {
       ? "Напоминание записать свою историю"
       : "Reminder to write your story",
     daily: lang === "ru" ? "Ежедневно" : "Daily",
+    threePerWeek: lang === "ru" ? "3 раза/нед" : "3x/week",
     weekly: lang === "ru" ? "Еженедельно" : "Weekly",
     frequency: lang === "ru" ? "Частота" : "Frequency",
     account: lang === "ru" ? "Аккаунт" : "Account",
@@ -173,7 +175,7 @@ const SettingsPage = () => {
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.frequency}</p>
                   <div className="flex gap-2">
-                    {(["daily", "weekly"] as const).map((f) => (
+                    {(["daily", "3x_week", "weekly"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => handleFrequencyChange(f)}
@@ -183,7 +185,7 @@ const SettingsPage = () => {
                             : "bg-muted text-muted-foreground hover:bg-accent"
                         }`}
                       >
-                        {f === "daily" ? t.daily : t.weekly}
+                        {f === "daily" ? t.daily : f === "3x_week" ? t.threePerWeek : t.weekly}
                       </button>
                     ))}
                   </div>

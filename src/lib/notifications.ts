@@ -1,8 +1,10 @@
 const NOTIFICATION_KEY = "diary-notifications";
 
+export type NotificationFrequency = "daily" | "3x_week" | "weekly";
+
 interface NotificationSettings {
   enabled: boolean;
-  frequency: "daily" | "weekly";
+  frequency: NotificationFrequency;
   lastShown?: string;
 }
 
@@ -34,6 +36,14 @@ export function getNotificationPermission(): NotificationPermission | null {
   return Notification.permission;
 }
 
+function getIntervalMs(frequency: NotificationFrequency): number {
+  switch (frequency) {
+    case "daily": return 20 * 60 * 60 * 1000; // 20h
+    case "3x_week": return 2 * 24 * 60 * 60 * 1000; // ~2 days
+    case "weekly": return 6 * 24 * 60 * 60 * 1000; // 6 days
+  }
+}
+
 export async function scheduleNotification(lang: "ru" | "en") {
   const settings = getNotificationSettings();
   if (!settings.enabled) return;
@@ -41,13 +51,9 @@ export async function scheduleNotification(lang: "ru" | "en") {
 
   const now = new Date();
   const last = settings.lastShown ? new Date(settings.lastShown) : null;
+  const interval = getIntervalMs(settings.frequency);
 
-  const shouldShow = !last || (
-    settings.frequency === "daily"
-      ? now.getTime() - last.getTime() > 20 * 60 * 60 * 1000 // 20h
-      : now.getTime() - last.getTime() > 6 * 24 * 60 * 60 * 1000 // 6 days
-  );
-
+  const shouldShow = !last || (now.getTime() - last.getTime() > interval);
   if (!shouldShow) return;
 
   const title = lang === "ru" ? "Мой Дневник" : "My Diary";
