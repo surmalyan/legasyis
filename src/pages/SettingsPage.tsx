@@ -39,11 +39,11 @@ const SettingsPage = () => {
     if (!notifEnabled) {
       const granted = await requestNotificationPermission();
       if (!granted) return;
-      saveNotificationSettings({ enabled: true, frequency });
+      saveNotificationSettings({ ...getNotificationSettings(), enabled: true, frequency });
       setNotifEnabled(true);
       setPermissionState("granted");
     } else {
-      saveNotificationSettings({ enabled: false, frequency });
+      saveNotificationSettings({ ...getNotificationSettings(), enabled: false });
       setNotifEnabled(false);
     }
   };
