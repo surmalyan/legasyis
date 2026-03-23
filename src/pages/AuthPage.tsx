@@ -29,6 +29,10 @@ const AuthPage = () => {
     checkEmail: lang === "ru" ? "Проверьте почту для подтверждения" : "Check your email to confirm",
     error: lang === "ru" ? "Произошла ошибка" : "Something went wrong",
     invalidCredentials: lang === "ru" ? "Неверный email или пароль" : "Invalid email or password",
+    forgotPassword: lang === "ru" ? "Забыли пароль?" : "Forgot password?",
+    resetSent: lang === "ru" ? "Ссылка для сброса отправлена на почту" : "Reset link sent to your email",
+    sendReset: lang === "ru" ? "Отправить ссылку" : "Send reset link",
+    backToLogin: lang === "ru" ? "Назад к входу" : "Back to sign in",
   };
 
   if (!authLoading && user) {
