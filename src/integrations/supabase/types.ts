@@ -41,6 +41,50 @@ export type Database = {
         }
         Relationships: []
       }
+      family_members: {
+        Row: {
+          birth_year: number | null
+          created_at: string
+          death_year: number | null
+          id: string
+          name: string
+          notes: string | null
+          parent_member_id: string | null
+          relationship: string
+          user_id: string
+        }
+        Insert: {
+          birth_year?: number | null
+          created_at?: string
+          death_year?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          parent_member_id?: string | null
+          relationship: string
+          user_id: string
+        }
+        Update: {
+          birth_year?: number | null
+          created_at?: string
+          death_year?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          parent_member_id?: string | null
+          relationship?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_parent_member_id_fkey"
+            columns: ["parent_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           advice_to_descendants: string | null
