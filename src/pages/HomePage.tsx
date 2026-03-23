@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { getTodayQuestion, getRandomQuestion } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
-import { PenLine, Mic, RefreshCw } from "lucide-react";
+import { PenLine, Mic, RefreshCw, Settings } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
 import logo from "@/assets/logo.png";
