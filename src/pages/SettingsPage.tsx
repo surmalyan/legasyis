@@ -30,6 +30,8 @@ const SettingsPage = () => {
     const settings = getNotificationSettings();
     setNotifEnabled(settings.enabled);
     setFrequency(settings.frequency);
+    setPreferredHour(settings.preferredHour);
+    setPreferredMinute(settings.preferredMinute);
     setPermissionState(getNotificationPermission());
   }, []);
 
