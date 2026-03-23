@@ -35,37 +35,45 @@ export function getEntryById(id: string): DiaryEntry | undefined {
 
 // Questions pool
 const questionsRu = [
+  "Какой момент из детства вы никогда не забудете?",
   "Что сегодня сделало вас счастливым?",
   "За что вы благодарны сегодня?",
   "Какой момент дня запомнился больше всего?",
   "Что нового вы узнали сегодня?",
-  "Если бы вы могли изменить одну вещь сегодня, что бы это было?",
   "Кто сегодня вас вдохновил?",
   "Какая мысль не покидала вас весь день?",
   "Что бы вы хотели сказать себе утром?",
   "Какой звук или запах вы запомнили сегодня?",
   "Что вы хотите запомнить об этом дне?",
-  "Какой совет вы бы дали себе вчерашнему?",
   "Что заставило вас улыбнуться сегодня?",
   "О чём вы мечтали сегодня?",
   "Какой маленький поступок принёс вам радость?",
+  "Какое место на Земле вы считаете своим?",
+  "Что вы хотели бы рассказать своим внукам?",
+  "Какой разговор изменил вашу жизнь?",
+  "Что вас удивило в последнее время?",
+  "Какую книгу или фильм вы хотели бы пережить заново?",
 ];
 
 const questionsEn = [
+  "What childhood moment will you never forget?",
   "What made you happy today?",
   "What are you grateful for today?",
   "What moment stood out the most today?",
   "What new thing did you learn today?",
-  "If you could change one thing about today, what would it be?",
   "Who inspired you today?",
   "What thought stayed with you all day?",
   "What would you tell your morning self?",
   "What sound or smell do you remember from today?",
   "What do you want to remember about this day?",
-  "What advice would you give yesterday's you?",
   "What made you smile today?",
   "What did you dream about today?",
   "What small act brought you joy?",
+  "What place on Earth do you call your own?",
+  "What would you want to tell your grandchildren?",
+  "What conversation changed your life?",
+  "What surprised you recently?",
+  "What book or movie would you want to experience again?",
 ];
 
 export function getTodayQuestion(lang: "ru" | "en"): string {
@@ -74,6 +82,12 @@ export function getTodayQuestion(lang: "ru" | "en"): string {
     (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
   );
   return questions[dayOfYear % questions.length];
+}
+
+export function getRandomQuestion(lang: "ru" | "en", exclude?: string): string {
+  const questions = lang === "ru" ? questionsRu : questionsEn;
+  const filtered = exclude ? questions.filter((q) => q !== exclude) : questions;
+  return filtered[Math.floor(Math.random() * filtered.length)];
 }
 
 export function generateStory(question: string, answer: string, lang: "ru" | "en"): string {
