@@ -76,7 +76,7 @@ const SettingsPage = () => {
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={24} />
         </button>
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">{t.settings}</h1>
+        <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display">{t.settings}</h1>
       </header>
 
       <main className="flex-1 px-6 pb-28 max-w-md mx-auto w-full space-y-6">
