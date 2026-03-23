@@ -200,6 +200,34 @@ const SettingsPage = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* Time picker */}
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {lang === "ru" ? "Время" : "Time"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={preferredHour}
+                      onChange={(e) => handleTimeChange(Number(e.target.value), preferredMinute)}
+                      className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                    <span className="text-foreground font-semibold">:</span>
+                    <select
+                      value={preferredMinute}
+                      onChange={(e) => handleTimeChange(preferredHour, Number(e.target.value))}
+                      className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
+                    >
+                      {[0, 15, 30, 45].map((m) => (
+                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               )}
             </>
           )}
