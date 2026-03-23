@@ -30,7 +30,7 @@ const NotificationBanner = () => {
   const handleEnable = async () => {
     const granted = await requestNotificationPermission();
     if (granted) {
-      saveNotificationSettings({ enabled: true, frequency: "daily" });
+      saveNotificationSettings({ ...getNotificationSettings(), enabled: true, frequency: "daily" });
       setEnabled(true);
     }
     setVisible(false);

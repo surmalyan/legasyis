@@ -22,12 +22,16 @@ const SettingsPage = () => {
 
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [frequency, setFrequency] = useState<NotificationFrequency>("daily");
+  const [preferredHour, setPreferredHour] = useState(9);
+  const [preferredMinute, setPreferredMinute] = useState(0);
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
 
   useEffect(() => {
     const settings = getNotificationSettings();
     setNotifEnabled(settings.enabled);
     setFrequency(settings.frequency);
+    setPreferredHour(settings.preferredHour);
+    setPreferredMinute(settings.preferredMinute);
     setPermissionState(getNotificationPermission());
   }, []);
 
@@ -35,11 +39,11 @@ const SettingsPage = () => {
     if (!notifEnabled) {
       const granted = await requestNotificationPermission();
       if (!granted) return;
-      saveNotificationSettings({ enabled: true, frequency });
+      saveNotificationSettings({ ...getNotificationSettings(), enabled: true, frequency });
       setNotifEnabled(true);
       setPermissionState("granted");
     } else {
-      saveNotificationSettings({ enabled: false, frequency });
+      saveNotificationSettings({ ...getNotificationSettings(), enabled: false });
       setNotifEnabled(false);
     }
   };
@@ -47,6 +51,12 @@ const SettingsPage = () => {
   const handleFrequencyChange = (f: NotificationFrequency) => {
     setFrequency(f);
     saveNotificationSettings({ ...getNotificationSettings(), frequency: f });
+  };
+
+  const handleTimeChange = (h: number, m: number) => {
+    setPreferredHour(h);
+    setPreferredMinute(m);
+    saveNotificationSettings({ ...getNotificationSettings(), preferredHour: h, preferredMinute: m });
   };
 
   const handleSignOut = async () => {
@@ -172,6 +182,7 @@ const SettingsPage = () => {
 
               {/* Frequency selector */}
               {notifEnabled && (
+                <>
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.frequency}</p>
                   <div className="flex gap-2">
@@ -190,6 +201,34 @@ const SettingsPage = () => {
                     ))}
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {lang === "ru" ? "Время" : "Time"}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={preferredHour}
+                      onChange={(e) => handleTimeChange(Number(e.target.value), preferredMinute)}
+                      className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
+                    >
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                    <span className="text-foreground font-semibold">:</span>
+                    <select
+                      value={preferredMinute}
+                      onChange={(e) => handleTimeChange(preferredHour, Number(e.target.value))}
+                      className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
+                    >
+                      {[0, 15, 30, 45].map((m) => (
+                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                </>
               )}
             </>
           )}

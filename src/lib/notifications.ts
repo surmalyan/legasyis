@@ -5,15 +5,18 @@ export type NotificationFrequency = "daily" | "3x_week" | "weekly";
 interface NotificationSettings {
   enabled: boolean;
   frequency: NotificationFrequency;
+  preferredHour: number; // 0-23
+  preferredMinute: number; // 0-59
   lastShown?: string;
 }
 
 export function getNotificationSettings(): NotificationSettings {
   try {
     const raw = localStorage.getItem(NOTIFICATION_KEY);
-    return raw ? JSON.parse(raw) : { enabled: false, frequency: "daily" };
+    const defaults = { enabled: false, frequency: "daily" as const, preferredHour: 9, preferredMinute: 0 };
+    return raw ? { ...defaults, ...JSON.parse(raw) } : defaults;
   } catch {
-    return { enabled: false, frequency: "daily" };
+    return { enabled: false, frequency: "daily", preferredHour: 9, preferredMinute: 0 };
   }
 }
 
