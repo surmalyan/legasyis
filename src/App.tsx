@@ -13,6 +13,7 @@ import ArchivePage from "./pages/ArchivePage";
 import AuthPage from "./pages/AuthPage";
 import PaywallPage from "./pages/PaywallPage";
 import SettingsPage from "./pages/SettingsPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -43,6 +44,7 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/entry" element={<ProtectedRoute><EntryPage /></ProtectedRoute>} />
               <Route path="/record" element={<ProtectedRoute><RecordPage /></ProtectedRoute>} />

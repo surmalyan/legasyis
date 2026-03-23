@@ -13,6 +13,7 @@ const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
   const { lang } = useI18n();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgot, setIsForgot] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,10 @@ const AuthPage = () => {
     checkEmail: lang === "ru" ? "Проверьте почту для подтверждения" : "Check your email to confirm",
     error: lang === "ru" ? "Произошла ошибка" : "Something went wrong",
     invalidCredentials: lang === "ru" ? "Неверный email или пароль" : "Invalid email or password",
+    forgotPassword: lang === "ru" ? "Забыли пароль?" : "Forgot password?",
+    resetSent: lang === "ru" ? "Ссылка для сброса отправлена на почту" : "Reset link sent to your email",
+    sendReset: lang === "ru" ? "Отправить ссылку" : "Send reset link",
+    backToLogin: lang === "ru" ? "Назад к входу" : "Back to sign in",
   };
 
   if (!authLoading && user) {
@@ -36,26 +41,27 @@ const AuthPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    if (!email.trim()) return;
 
     setLoading(true);
     try {
-      if (isLogin) {
+      if (isForgot) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) toast.error(t.error);
+        else toast.success(t.resetSent);
+      } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          toast.error(t.invalidCredentials);
-        }
+        if (error) toast.error(t.invalidCredentials);
       } else {
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
-        if (error) {
-          toast.error(t.error);
-        } else {
-          toast.success(t.checkEmail);
-        }
+        if (error) toast.error(t.error);
+        else toast.success(t.checkEmail);
       }
     } catch {
       toast.error(t.error);
@@ -92,36 +98,48 @@ const AuthPage = () => {
               className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
             />
           </div>
-          <div className="relative">
-            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t.password}
-              disabled={loading}
-              className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
-            />
-          </div>
+          {!isForgot && (
+            <div className="relative">
+              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t.password}
+                disabled={loading}
+                className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
+              />
+            </div>
+          )}
 
           <button
             type="submit"
-            disabled={loading || !email.trim() || !password.trim()}
+            disabled={loading || !email.trim() || (!isForgot && !password.trim())}
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-2xl py-4 text-lg font-medium transition-all active:scale-[0.97] disabled:opacity-40"
           >
             {loading ? (
               <Loader2 size={22} className="animate-spin" />
             ) : (
-              isLogin ? t.login : t.signup
+              isForgot ? t.sendReset : isLogin ? t.login : t.signup
             )}
           </button>
 
+          {isLogin && !isForgot && (
+            <button
+              type="button"
+              onClick={() => setIsForgot(true)}
+              className="w-full text-center text-xs text-muted-foreground py-1 hover:text-foreground transition-colors"
+            >
+              {t.forgotPassword}
+            </button>
+          )}
+
           <button
             type="button"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => { setIsLogin(!isLogin); setIsForgot(false); }}
             className="w-full text-center text-sm text-muted-foreground py-2 hover:text-foreground transition-colors"
           >
-            {isLogin ? t.switchToSignup : t.switchToLogin}
+            {isForgot ? t.backToLogin : isLogin ? t.switchToSignup : t.switchToLogin}
           </button>
         </form>
 

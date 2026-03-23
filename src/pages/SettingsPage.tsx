@@ -9,12 +9,14 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft, Globe } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 import BottomNav from "@/components/BottomNav";
 
 const SettingsPage = () => {
   const { lang, setLang } = useI18n();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const [notifEnabled, setNotifEnabled] = useState(false);
@@ -102,6 +104,33 @@ const SettingsPage = () => {
                 }`}
               >
                 {l === "ru" ? "Русский" : "English"}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Theme Section */}
+        <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              {theme === "dark" ? <Moon size={18} className="text-primary" /> : <Sun size={18} className="text-primary" />}
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">{lang === "ru" ? "Тема" : "Theme"}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {(["light", "dark"] as const).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTheme(t)}
+                className={`flex-1 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] ${
+                  theme === t
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {t === "light" ? (lang === "ru" ? "Светлая" : "Light") : (lang === "ru" ? "Тёмная" : "Dark")}
               </button>
             ))}
           </div>
