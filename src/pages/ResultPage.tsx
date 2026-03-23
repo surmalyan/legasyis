@@ -63,7 +63,7 @@ const ResultPage = () => {
 
         <div className="flex items-center justify-center gap-3 mb-8">
           <span className="h-px w-12 bg-border" />
-          <span className="text-primary text-sm select-none">✦</span>
+          <InfinitySymbol size={32} className="text-primary" />
           <span className="h-px w-12 bg-border" />
         </div>
 
