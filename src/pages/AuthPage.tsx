@@ -98,36 +98,48 @@ const AuthPage = () => {
               className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
             />
           </div>
-          <div className="relative">
-            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={t.password}
-              disabled={loading}
-              className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
-            />
-          </div>
+          {!isForgot && (
+            <div className="relative">
+              <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t.password}
+                disabled={loading}
+                className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
+              />
+            </div>
+          )}
 
           <button
             type="submit"
-            disabled={loading || !email.trim() || !password.trim()}
+            disabled={loading || !email.trim() || (!isForgot && !password.trim())}
             className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-2xl py-4 text-lg font-medium transition-all active:scale-[0.97] disabled:opacity-40"
           >
             {loading ? (
               <Loader2 size={22} className="animate-spin" />
             ) : (
-              isLogin ? t.login : t.signup
+              isForgot ? t.sendReset : isLogin ? t.login : t.signup
             )}
           </button>
 
+          {isLogin && !isForgot && (
+            <button
+              type="button"
+              onClick={() => setIsForgot(true)}
+              className="w-full text-center text-xs text-muted-foreground py-1 hover:text-foreground transition-colors"
+            >
+              {t.forgotPassword}
+            </button>
+          )}
+
           <button
             type="button"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => { setIsLogin(!isLogin); setIsForgot(false); }}
             className="w-full text-center text-sm text-muted-foreground py-2 hover:text-foreground transition-colors"
           >
-            {isLogin ? t.switchToSignup : t.switchToLogin}
+            {isForgot ? t.backToLogin : isLogin ? t.switchToSignup : t.switchToLogin}
           </button>
         </form>
 
