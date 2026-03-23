@@ -86,7 +86,7 @@ const ResultPage = () => {
         </div>
 
         <div className="flex justify-center mt-10 mb-8">
-          <span className="text-primary text-2xl select-none">✦</span>
+          <InfinitySymbol size={40} className="text-primary" />
         </div>
 
         <div className="max-w-lg mx-auto bg-accent/40 rounded-2xl p-5 mb-8">

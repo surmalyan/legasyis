@@ -66,7 +66,8 @@ const AuthPage = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-8 pb-16">
         {/* Logo */}
         <div className="flex flex-col items-center mb-12 animate-fade-in">
-          <img src={logo} alt="MYLEGACY" className="w-28 h-28 object-contain mb-4" />
+          <img src={logo} alt="MYLEGACY" className="w-28 h-28 object-contain mb-2" />
+          <InfinitySymbol size={60} className="text-primary mb-3" />
           <p className="text-sm text-muted-foreground mt-1 text-center max-w-[260px]">{t.subtitle}</p>
         </div>
 
