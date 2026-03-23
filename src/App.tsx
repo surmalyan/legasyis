@@ -14,6 +14,8 @@ import AuthPage from "./pages/AuthPage";
 import PaywallPage from "./pages/PaywallPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProfilePage from "./pages/ProfilePage";
+import FamilyTreePage from "./pages/FamilyTreePage";
+import ExportPage from "./pages/ExportPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
