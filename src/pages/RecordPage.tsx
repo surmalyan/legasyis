@@ -2,8 +2,12 @@ import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
-import { saveEntry, generateStory } from "@/lib/diary-store";
-import { ArrowLeft, Mic, Square, Play, Pause, RotateCcw, Send } from "lucide-react";
+import { saveEntry } from "@/lib/diary-store";
+import { transcribeAudio, generateAIStory } from "@/lib/ai-service";
+import { ArrowLeft, Mic, Square, Play, Pause, RotateCcw, Send, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+type ProcessingStep = null | "transcribing" | "generating";
 
 const RecordPage = () => {
   const { t, lang } = useI18n();
@@ -13,6 +17,7 @@ const RecordPage = () => {
 
   const recorder = useAudioRecorder();
   const [isPlaying, setIsPlaying] = useState(false);
+  const [processing, setProcessing] = useState<ProcessingStep>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const handleToggleRecord = () => {
@@ -49,26 +54,64 @@ const RecordPage = () => {
     recorder.reset();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!recorder.recording) return;
 
-    const answerText =
-      lang === "ru"
-        ? `[Голосовая запись — ${recorder.formatTime(Math.round(recorder.recording.duration))}]`
-        : `[Voice recording — ${recorder.formatTime(Math.round(recorder.recording.duration))}]`;
+    try {
+      // Step 1: Transcribe audio
+      setProcessing("transcribing");
+      const transcript = await transcribeAudio(recorder.recording.blob, lang);
 
-    const story = generateStory(question, answerText, lang);
-    const entry = {
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-      question,
-      answer: answerText,
-      story,
-      audioUrl: recorder.recording.url,
-    };
+      if (!transcript.trim()) {
+        toast.error(
+          lang === "ru"
+            ? "Не удалось распознать речь. Попробуйте ещё раз."
+            : "Could not recognize speech. Please try again."
+        );
+        setProcessing(null);
+        return;
+      }
 
-    saveEntry(entry);
-    navigate("/result", { state: { entry } });
+      // Step 2: Generate story
+      setProcessing("generating");
+      const aiStory = await generateAIStory(transcript, question, lang);
+
+      // Step 3: Save entry
+      const entry = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        question,
+        answer: transcript,
+        story: aiStory,
+        audioUrl: recorder.recording.url,
+      };
+
+      saveEntry(entry);
+      setProcessing(null);
+      navigate("/result", { state: { entry } });
+    } catch (err: any) {
+      setProcessing(null);
+      if (err.message === "rate_limited") {
+        toast.error(
+          lang === "ru"
+            ? "Слишком много запросов. Подождите немного."
+            : "Too many requests. Please wait a moment."
+        );
+      } else if (err.message === "payment_required") {
+        toast.error(
+          lang === "ru"
+            ? "Необходимо пополнить баланс AI."
+            : "AI credits need to be topped up."
+        );
+      } else {
+        toast.error(
+          lang === "ru"
+            ? "Произошла ошибка. Попробуйте ещё раз."
+            : "Something went wrong. Please try again."
+        );
+      }
+      console.error("Submit error:", err);
+    }
   };
 
   const hint =
@@ -81,13 +124,23 @@ const RecordPage = () => {
       ? "Не удалось получить доступ к микрофону"
       : "Could not access the microphone";
 
+  const processingLabel =
+    processing === "transcribing"
+      ? lang === "ru"
+        ? "Распознаю речь..."
+        : "Transcribing..."
+      : lang === "ru"
+      ? "Создаю историю..."
+      : "Generating story...";
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
       <header className="flex items-center gap-3 px-6 pt-14 pb-4">
         <button
           onClick={() => navigate(-1)}
-          className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors"
+          disabled={!!processing}
+          className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
         >
           <ArrowLeft size={24} />
         </button>
@@ -111,10 +164,24 @@ const RecordPage = () => {
             </p>
           )}
 
-          {/* No recording yet — show big record button */}
-          {!recorder.recording && (
+          {/* Processing overlay */}
+          {processing && (
             <div className="flex flex-col items-center gap-6 animate-fade-in">
-              {/* Pulse rings behind mic button */}
+              <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                <Loader2 size={40} className="text-primary animate-spin" />
+              </div>
+              <p className="text-lg font-medium text-foreground">{processingLabel}</p>
+              <p className="text-sm text-muted-foreground text-center max-w-[260px]">
+                {lang === "ru"
+                  ? "Это займёт несколько секунд"
+                  : "This will take a few seconds"}
+              </p>
+            </div>
+          )}
+
+          {/* No recording yet — show big record button */}
+          {!recorder.recording && !processing && (
+            <div className="flex flex-col items-center gap-6 animate-fade-in">
               <div className="relative">
                 {recorder.isRecording && (
                   <>
@@ -138,7 +205,6 @@ const RecordPage = () => {
                 </button>
               </div>
 
-              {/* Timer or hint */}
               {recorder.isRecording ? (
                 <div className="flex flex-col items-center gap-2">
                   <p className="text-3xl font-light text-foreground tabular-nums tracking-wider">
@@ -157,11 +223,9 @@ const RecordPage = () => {
           )}
 
           {/* Has recording — show playback + actions */}
-          {recorder.recording && (
+          {recorder.recording && !processing && (
             <div className="flex flex-col items-center gap-8 w-full animate-scale-in">
-              {/* Playback visualization card */}
               <div className="w-full bg-card rounded-3xl p-8 border border-border shadow-sm">
-                {/* Waveform placeholder bars */}
                 <div className="flex items-center justify-center gap-[3px] h-16 mb-6">
                   {Array.from({ length: 32 }).map((_, i) => {
                     const height = 12 + Math.sin(i * 0.7) * 28 + Math.random() * 16;
@@ -176,14 +240,11 @@ const RecordPage = () => {
                     );
                   })}
                 </div>
-
-                {/* Duration */}
                 <p className="text-center text-lg text-foreground font-light tabular-nums">
                   {recorder.formatTime(Math.round(recorder.recording.duration))}
                 </p>
               </div>
 
-              {/* Playback controls */}
               <div className="flex items-center gap-6">
                 <button
                   onClick={handleReRecord}
@@ -191,18 +252,15 @@ const RecordPage = () => {
                 >
                   <RotateCcw size={22} />
                 </button>
-
                 <button
                   onClick={handlePlay}
                   className="w-20 h-20 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg transition-all active:scale-95"
                 >
                   {isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
                 </button>
-
-                <div className="w-14 h-14" /> {/* spacer for symmetry */}
+                <div className="w-14 h-14" />
               </div>
 
-              {/* Submit */}
               <button
                 onClick={handleSubmit}
                 className="w-full flex items-center justify-center gap-3 bg-primary text-primary-foreground rounded-2xl py-5 text-lg font-medium transition-all active:scale-[0.97] hover:opacity-90 mt-2"
