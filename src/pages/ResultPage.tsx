@@ -38,14 +38,21 @@ const ResultPage = () => {
               </span>
             </div>
             <div className="space-y-4">
-              {entry.story.split("\n\n").map((paragraph, i) => (
-                <p
-                  key={i}
-                  className="text-lg leading-relaxed text-foreground font-light"
-                >
-                  {paragraph}
-                </p>
-              ))}
+              {entry.story.split("\n").filter(Boolean).map((paragraph, i) => {
+                // First non-empty line is likely the title from AI
+                if (i === 0 && paragraph.startsWith("#")) {
+                  return (
+                    <h2 key={i} className="text-xl font-semibold text-foreground mb-2">
+                      {paragraph.replace(/^#+\s*/, "")}
+                    </h2>
+                  );
+                }
+                return (
+                  <p key={i} className="text-lg leading-relaxed text-foreground font-light">
+                    {paragraph}
+                  </p>
+                );
+              })}
             </div>
           </div>
 
