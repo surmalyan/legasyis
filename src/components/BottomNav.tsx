@@ -1,15 +1,16 @@
 import { useI18n } from "@/lib/i18n";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BookOpen, Home } from "lucide-react";
+import { BookOpen, Home, Settings } from "lucide-react";
 
 const BottomNav = () => {
-  const { t } = useI18n();
+  const { lang } = useI18n();
   const location = useLocation();
   const navigate = useNavigate();
 
   const tabs = [
-    { path: "/", label: t("home"), icon: Home },
-    { path: "/archive", label: t("archive"), icon: BookOpen },
+    { path: "/", label: lang === "ru" ? "Главная" : "Home", icon: Home },
+    { path: "/archive", label: lang === "ru" ? "Архив" : "Archive", icon: BookOpen },
+    { path: "/settings", label: lang === "ru" ? "Настройки" : "Settings", icon: Settings },
   ];
 
   return (
