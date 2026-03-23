@@ -9,11 +9,11 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 const SettingsPage = () => {
-  const { lang } = useI18n();
+  const { lang, setLang } = useI18n();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -80,6 +80,33 @@ const SettingsPage = () => {
       </header>
 
       <main className="flex-1 px-6 pb-28 max-w-md mx-auto w-full space-y-6">
+        {/* Language Section */}
+        <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <Globe size={18} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">{lang === "ru" ? "Язык" : "Language"}</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {(["ru", "en"] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => setLang(l)}
+                className={`flex-1 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] ${
+                  lang === l
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {l === "ru" ? "Русский" : "English"}
+              </button>
+            ))}
+          </div>
+        </section>
+
         {/* Notifications Section */}
         <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
           <div className="flex items-center gap-3">

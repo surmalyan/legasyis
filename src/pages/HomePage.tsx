@@ -5,7 +5,6 @@ import { getTodayQuestion, getRandomQuestion } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw } from "lucide-react";
-import LanguageToggle from "@/components/LanguageToggle";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
 
@@ -38,9 +37,8 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="flex items-center justify-between px-6 pt-14 pb-2">
+      <header className="flex items-center justify-center px-6 pt-14 pb-2">
         <h1 className="text-lg font-semibold tracking-tight text-foreground">{t("appName")}</h1>
-        <LanguageToggle />
       </header>
 
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
