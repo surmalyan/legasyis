@@ -16,6 +16,7 @@ export function useSubscription(): SubscriptionState {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [entryCount, setEntryCount] = useState(0);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export function useSubscription(): SubscriptionState {
     }
 
     const load = async () => {
-      const [subRes, countRes] = await Promise.all([
+      const [subRes, countRes, roleRes] = await Promise.all([
         supabase
           .from("user_subscriptions")
           .select("active")
@@ -35,9 +36,17 @@ export function useSubscription(): SubscriptionState {
           .from("entries")
           .select("id", { count: "exact", head: true })
           .eq("user_id", user.id),
+        supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle(),
       ]);
 
-      setIsSubscribed(subRes.data?.active === true);
+      const admin = !!roleRes.data;
+      setIsAdmin(admin);
+      setIsSubscribed(subRes.data?.active === true || admin);
       setEntryCount(countRes.count ?? 0);
       setLoading(false);
     };
@@ -45,8 +54,8 @@ export function useSubscription(): SubscriptionState {
     load();
   }, [user]);
 
-  const canCreate = isSubscribed || entryCount < FREE_LIMIT;
-  const remaining = Math.max(0, FREE_LIMIT - entryCount);
+  const canCreate = isSubscribed || isAdmin || entryCount < FREE_LIMIT;
+  const remaining = isAdmin ? Infinity : Math.max(0, FREE_LIMIT - entryCount);
 
   return { loading, isSubscribed, entryCount, canCreate, remaining };
 }
