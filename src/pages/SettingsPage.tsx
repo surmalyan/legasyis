@@ -182,6 +182,7 @@ const SettingsPage = () => {
 
               {/* Frequency selector */}
               {notifEnabled && (
+                <>
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.frequency}</p>
                   <div className="flex gap-2">
@@ -201,7 +202,6 @@ const SettingsPage = () => {
                   </div>
                 </div>
 
-                {/* Time picker */}
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     {lang === "ru" ? "Время" : "Time"}
@@ -228,6 +228,7 @@ const SettingsPage = () => {
                     </select>
                   </div>
                 </div>
+                </>
               )}
             </>
           )}
