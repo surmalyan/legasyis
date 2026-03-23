@@ -175,7 +175,7 @@ const SettingsPage = () => {
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.frequency}</p>
                   <div className="flex gap-2">
-                    {(["daily", "weekly"] as const).map((f) => (
+                    {(["daily", "3x_week", "weekly"] as const).map((f) => (
                       <button
                         key={f}
                         onClick={() => handleFrequencyChange(f)}
@@ -185,7 +185,7 @@ const SettingsPage = () => {
                             : "bg-muted text-muted-foreground hover:bg-accent"
                         }`}
                       >
-                        {f === "daily" ? t.daily : t.weekly}
+                        {f === "daily" ? t.daily : f === "3x_week" ? t.threePerWeek : t.weekly}
                       </button>
                     ))}
                   </div>
