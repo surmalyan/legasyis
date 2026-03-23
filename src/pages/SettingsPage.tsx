@@ -61,6 +61,7 @@ const SettingsPage = () => {
       ? "Напоминание записать свою историю"
       : "Reminder to write your story",
     daily: lang === "ru" ? "Ежедневно" : "Daily",
+    threePerWeek: lang === "ru" ? "3 раза/нед" : "3x/week",
     weekly: lang === "ru" ? "Еженедельно" : "Weekly",
     frequency: lang === "ru" ? "Частота" : "Frequency",
     account: lang === "ru" ? "Аккаунт" : "Account",
