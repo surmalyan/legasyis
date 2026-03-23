@@ -7,7 +7,7 @@ import { Mail, Lock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
 import InfinitySymbol from "@/components/InfinitySymbol";
-import logo from "@/assets/logo.jpg";
+import logo from "@/assets/logo.png";
 
 const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
