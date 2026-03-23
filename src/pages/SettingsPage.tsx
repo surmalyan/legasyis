@@ -21,7 +21,7 @@ const SettingsPage = () => {
   const navigate = useNavigate();
 
   const [notifEnabled, setNotifEnabled] = useState(false);
-  const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
+  const [frequency, setFrequency] = useState<NotificationFrequency>("daily");
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
 
   useEffect(() => {
