@@ -44,7 +44,7 @@ const SettingsPage = () => {
     }
   };
 
-  const handleFrequencyChange = (f: "daily" | "weekly") => {
+  const handleFrequencyChange = (f: NotificationFrequency) => {
     setFrequency(f);
     saveNotificationSettings({ ...getNotificationSettings(), frequency: f });
   };
