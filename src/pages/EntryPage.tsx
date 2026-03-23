@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { saveEntry } from "@/lib/diary-store";
+import { saveEntryToDb } from "@/lib/diary-store";
 import { generateAIStory } from "@/lib/ai-service";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -22,37 +22,32 @@ const EntryPage = () => {
       setIsGenerating(true);
       const aiStory = await generateAIStory(answer, question, lang);
 
-      const entry = {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString(),
+      const id = await saveEntryToDb({
         question,
-        answer,
-        story: aiStory,
-      };
+        original_text: answer,
+        ai_story: aiStory,
+      });
 
-      saveEntry(entry);
       setIsGenerating(false);
-      navigate("/result", { state: { entry } });
+      navigate("/result", {
+        state: {
+          entry: {
+            id,
+            date: new Date().toISOString(),
+            question,
+            answer,
+            story: aiStory,
+          },
+        },
+      });
     } catch (err: any) {
       setIsGenerating(false);
       if (err.message === "rate_limited") {
-        toast.error(
-          lang === "ru"
-            ? "Слишком много запросов. Подождите немного."
-            : "Too many requests. Please wait a moment."
-        );
+        toast.error(lang === "ru" ? "Слишком много запросов. Подождите немного." : "Too many requests. Please wait a moment.");
       } else if (err.message === "payment_required") {
-        toast.error(
-          lang === "ru"
-            ? "Необходимо пополнить баланс AI."
-            : "AI credits need to be topped up."
-        );
+        toast.error(lang === "ru" ? "Необходимо пополнить баланс AI." : "AI credits need to be topped up.");
       } else {
-        toast.error(
-          lang === "ru"
-            ? "Произошла ошибка. Попробуйте ещё раз."
-            : "Something went wrong. Please try again."
-        );
+        toast.error(lang === "ru" ? "Произошла ошибка. Попробуйте ещё раз." : "Something went wrong. Please try again.");
       }
       console.error("Save error:", err);
     }
@@ -60,7 +55,6 @@ const EntryPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Header */}
       <header className="flex items-center gap-3 px-6 pt-14 pb-4">
         <button
           onClick={() => navigate(-1)}
@@ -73,14 +67,10 @@ const EntryPage = () => {
       </header>
 
       <main className="flex-1 flex flex-col px-6 pb-8">
-        {/* Question */}
         <div className="bg-diary-warm-light rounded-2xl p-5 mb-6 animate-fade-in">
-          <p className="text-base text-accent-foreground font-medium leading-relaxed">
-            {question}
-          </p>
+          <p className="text-base text-accent-foreground font-medium leading-relaxed">{question}</p>
         </div>
 
-        {/* Text input */}
         <textarea
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
@@ -89,7 +79,6 @@ const EntryPage = () => {
           className="flex-1 min-h-[200px] w-full bg-card border border-border rounded-2xl p-5 text-lg text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
         />
 
-        {/* Save button */}
         <button
           onClick={handleSave}
           disabled={!answer.trim() || isGenerating}
