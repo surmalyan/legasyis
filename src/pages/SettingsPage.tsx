@@ -9,11 +9,11 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 
 const SettingsPage = () => {
-  const { lang } = useI18n();
+  const { lang, setLang } = useI18n();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
