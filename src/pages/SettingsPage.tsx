@@ -22,6 +22,8 @@ const SettingsPage = () => {
 
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [frequency, setFrequency] = useState<NotificationFrequency>("daily");
+  const [preferredHour, setPreferredHour] = useState(9);
+  const [preferredMinute, setPreferredMinute] = useState(0);
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
 
   useEffect(() => {
