@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
+import type { NotificationFrequency } from "@/lib/notifications";
 import { useAuth } from "@/lib/auth-context";
 import {
   isNotificationSupported,
