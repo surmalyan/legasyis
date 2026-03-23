@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/lib/i18n";
 import Index from "./pages/Index";
 import EntryPage from "./pages/EntryPage";
+import RecordPage from "./pages/RecordPage";
 import ResultPage from "./pages/ResultPage";
 import ArchivePage from "./pages/ArchivePage";
 import NotFound from "./pages/NotFound";
