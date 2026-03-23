@@ -5,6 +5,8 @@ export type NotificationFrequency = "daily" | "3x_week" | "weekly";
 interface NotificationSettings {
   enabled: boolean;
   frequency: NotificationFrequency;
+  preferredHour: number; // 0-23
+  preferredMinute: number; // 0-59
   lastShown?: string;
 }
 
