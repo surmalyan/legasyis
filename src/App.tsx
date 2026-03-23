@@ -13,6 +13,7 @@ import ArchivePage from "./pages/ArchivePage";
 import AuthPage from "./pages/AuthPage";
 import PaywallPage from "./pages/PaywallPage";
 import SettingsPage from "./pages/SettingsPage";
+import ProfilePage from "./pages/ProfilePage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
