@@ -10,6 +10,7 @@ import InfinitySymbol from "@/components/InfinitySymbol";
 import logo from "@/assets/logo.jpg";
 
 const AuthPage = () => {
+  const { user, loading: authLoading } = useAuth();
   const { lang } = useI18n();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
