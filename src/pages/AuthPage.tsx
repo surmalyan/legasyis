@@ -107,6 +107,14 @@ const AuthPage = () => {
           <p className="text-sm text-muted-foreground mt-1 text-center max-w-[260px]">{t.subtitle}</p>
         </div>
 
+        {/* Error message */}
+        {errorMsg && (
+          <div className="w-full max-w-sm flex items-center gap-2 bg-destructive/10 text-destructive rounded-2xl px-4 py-3 text-sm animate-fade-in">
+            <AlertCircle size={18} className="shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 animate-fade-in">
           <div className="relative">
