@@ -280,6 +280,39 @@ const SettingsPage = () => {
           )}
         </section>
 
+        {/* Change Password Section */}
+        <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock size={18} className="text-primary" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">{t.changePassword}</p>
+          </div>
+          <div className="space-y-3">
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder={t.newPassword}
+              className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={t.confirmPassword}
+              className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+            />
+            <button
+              onClick={handleChangePassword}
+              disabled={changingPassword || !newPassword || !confirmPassword}
+              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] disabled:opacity-40"
+            >
+              {changingPassword ? <Loader2 size={18} className="animate-spin" /> : t.save}
+            </button>
+          </div>
+        </section>
+
         {/* Account Section */}
         <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.account}</p>
@@ -293,6 +326,37 @@ const SettingsPage = () => {
             <LogOut size={18} />
             {t.signOut}
           </button>
+        </section>
+
+        {/* Delete Account Section */}
+        <section className="bg-card rounded-2xl border border-destructive/30 p-5 space-y-4">
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full flex items-center justify-center gap-2 text-destructive text-sm font-medium py-2 transition-colors hover:text-destructive/80"
+            >
+              <Trash2 size={16} />
+              {t.deleteAccount}
+            </button>
+          ) : (
+            <div className="space-y-3 animate-fade-in">
+              <p className="text-xs text-destructive text-center">{t.deleteWarning}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-xl py-3 text-sm font-medium bg-muted text-muted-foreground hover:bg-accent transition-all active:scale-[0.97]"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex-1 rounded-xl py-3 text-sm font-medium bg-destructive text-destructive-foreground transition-all active:scale-[0.97]"
+                >
+                  {t.confirm}
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       </main>
 
