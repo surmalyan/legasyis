@@ -16,22 +16,22 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border safe-bottom z-50">
-      <div className="flex justify-around items-center h-14 max-w-lg mx-auto px-1">
+    <nav className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-xl border-t border-border z-50" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+      <div className="flex items-center h-12 max-w-lg mx-auto">
         {tabs.map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path;
           return (
             <button
               key={path}
               onClick={() => navigate(path)}
-              className={`flex flex-col items-center gap-0.5 min-w-0 flex-1 py-1.5 rounded-lg transition-colors ${
+              className={`flex flex-col items-center justify-center gap-0 min-w-0 flex-1 h-full transition-colors ${
                 active
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
-              <span className="text-[10px] font-medium truncate max-w-full">{label}</span>
+              <Icon size={18} strokeWidth={active ? 2.5 : 1.5} />
+              <span className="text-[9px] font-medium truncate w-full text-center leading-tight mt-0.5">{label}</span>
             </button>
           );
         })}
