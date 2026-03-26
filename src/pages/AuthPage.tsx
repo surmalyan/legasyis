@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
 import logo from "@/assets/logo.png";
@@ -17,6 +17,7 @@ const AuthPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const t = {
     subtitle: lang === "ru" ? "Сохрани свою историю для будущих поколений" : "Preserve your story for future generations",
@@ -33,15 +34,31 @@ const AuthPage = () => {
     resetSent: lang === "ru" ? "Ссылка для сброса отправлена на почту" : "Reset link sent to your email",
     sendReset: lang === "ru" ? "Отправить ссылку" : "Send reset link",
     backToLogin: lang === "ru" ? "Назад к входу" : "Back to sign in",
+    emailNotConfirmed: lang === "ru" ? "Подтвердите email — проверьте почту" : "Please confirm your email first",
+    weakPassword: lang === "ru" ? "Пароль должен быть не менее 6 символов" : "Password must be at least 6 characters",
+    emailTaken: lang === "ru" ? "Этот email уже зарегистрирован" : "This email is already registered",
+    rateLimited: lang === "ru" ? "Слишком много попыток. Подождите немного" : "Too many attempts. Please wait",
   };
 
   if (!authLoading && user) {
     return <Navigate to="/" replace />;
   }
 
+  const getErrorMessage = (error: any, isSignUp: boolean): string => {
+    const msg = error?.message?.toLowerCase() || "";
+    if (msg.includes("invalid login credentials") || msg.includes("invalid_credentials")) return t.invalidCredentials;
+    if (msg.includes("email not confirmed")) return t.emailNotConfirmed;
+    if (msg.includes("password") && msg.includes("6")) return t.weakPassword;
+    if (msg.includes("already registered") || msg.includes("already been registered")) return t.emailTaken;
+    if (msg.includes("rate") || msg.includes("too many")) return t.rateLimited;
+    if (isSignUp && msg.includes("user already registered")) return t.emailTaken;
+    return t.error;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) return;
+    setErrorMsg("");
 
     setLoading(true);
     try {
@@ -49,22 +66,27 @@ const AuthPage = () => {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
         });
-        if (error) toast.error(t.error);
+        if (error) setErrorMsg(t.error);
         else toast.success(t.resetSent);
       } else if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) toast.error(t.invalidCredentials);
+        if (error) setErrorMsg(getErrorMessage(error, false));
       } else {
+        if (password.length < 6) {
+          setErrorMsg(t.weakPassword);
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
-        if (error) toast.error(t.error);
+        if (error) setErrorMsg(getErrorMessage(error, true));
         else toast.success(t.checkEmail);
       }
     } catch {
-      toast.error(t.error);
+      setErrorMsg(t.error);
     } finally {
       setLoading(false);
     }
@@ -84,6 +106,14 @@ const AuthPage = () => {
           </div>
           <p className="text-sm text-muted-foreground mt-1 text-center max-w-[260px]">{t.subtitle}</p>
         </div>
+
+        {/* Error message */}
+        {errorMsg && (
+          <div className="w-full max-w-sm flex items-center gap-2 bg-destructive/10 text-destructive rounded-2xl px-4 py-3 text-sm animate-fade-in">
+            <AlertCircle size={18} className="shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 animate-fade-in">

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import type { NotificationFrequency } from "@/lib/notifications";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 import {
   isNotificationSupported,
   getNotificationSettings,
@@ -10,8 +11,9 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon, Lock, Trash2, Loader2 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 
 const SettingsPage = () => {
@@ -25,7 +27,10 @@ const SettingsPage = () => {
   const [preferredHour, setPreferredHour] = useState(9);
   const [preferredMinute, setPreferredMinute] = useState(0);
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
-
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   useEffect(() => {
     const settings = getNotificationSettings();
     setNotifEnabled(settings.enabled);
@@ -64,6 +69,39 @@ const SettingsPage = () => {
     navigate("/auth");
   };
 
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error(lang === "ru" ? "Пароль должен быть не менее 6 символов" : "Password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(lang === "ru" ? "Пароли не совпадают" : "Passwords don't match");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast.error(lang === "ru" ? "Ошибка смены пароля" : "Failed to change password");
+      } else {
+        toast.success(lang === "ru" ? "Пароль успешно изменён" : "Password changed successfully");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch {
+      toast.error(lang === "ru" ? "Ошибка" : "Error");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    toast.error(lang === "ru" 
+      ? "Для удаления аккаунта напишите в поддержку" 
+      : "To delete your account, contact support");
+    setShowDeleteConfirm(false);
+  };
+
   const t = {
     settings: lang === "ru" ? "Настройки" : "Settings",
     notifications: lang === "ru" ? "Уведомления" : "Notifications",
@@ -76,6 +114,14 @@ const SettingsPage = () => {
     frequency: lang === "ru" ? "Частота" : "Frequency",
     account: lang === "ru" ? "Аккаунт" : "Account",
     signOut: lang === "ru" ? "Выйти" : "Sign Out",
+    changePassword: lang === "ru" ? "Сменить пароль" : "Change Password",
+    newPassword: lang === "ru" ? "Новый пароль" : "New password",
+    confirmPassword: lang === "ru" ? "Подтвердите пароль" : "Confirm password",
+    save: lang === "ru" ? "Сохранить" : "Save",
+    deleteAccount: lang === "ru" ? "Удалить аккаунт" : "Delete Account",
+    deleteWarning: lang === "ru" ? "Это действие необратимо. Все ваши данные будут удалены." : "This action is irreversible. All your data will be deleted.",
+    cancel: lang === "ru" ? "Отмена" : "Cancel",
+    confirm: lang === "ru" ? "Удалить" : "Delete",
     notSupported: lang === "ru"
       ? "Уведомления не поддерживаются в этом браузере"
       : "Notifications not supported in this browser",
@@ -234,6 +280,39 @@ const SettingsPage = () => {
           )}
         </section>
 
+        {/* Change Password Section */}
+        <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock size={18} className="text-primary" />
+            </div>
+            <p className="text-sm font-semibold text-foreground">{t.changePassword}</p>
+          </div>
+          <div className="space-y-3">
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder={t.newPassword}
+              className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+            />
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder={t.confirmPassword}
+              className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow"
+            />
+            <button
+              onClick={handleChangePassword}
+              disabled={changingPassword || !newPassword || !confirmPassword}
+              className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] disabled:opacity-40"
+            >
+              {changingPassword ? <Loader2 size={18} className="animate-spin" /> : t.save}
+            </button>
+          </div>
+        </section>
+
         {/* Account Section */}
         <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.account}</p>
@@ -247,6 +326,37 @@ const SettingsPage = () => {
             <LogOut size={18} />
             {t.signOut}
           </button>
+        </section>
+
+        {/* Delete Account Section */}
+        <section className="bg-card rounded-2xl border border-destructive/30 p-5 space-y-4">
+          {!showDeleteConfirm ? (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="w-full flex items-center justify-center gap-2 text-destructive text-sm font-medium py-2 transition-colors hover:text-destructive/80"
+            >
+              <Trash2 size={16} />
+              {t.deleteAccount}
+            </button>
+          ) : (
+            <div className="space-y-3 animate-fade-in">
+              <p className="text-xs text-destructive text-center">{t.deleteWarning}</p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 rounded-xl py-3 text-sm font-medium bg-muted text-muted-foreground hover:bg-accent transition-all active:scale-[0.97]"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  className="flex-1 rounded-xl py-3 text-sm font-medium bg-destructive text-destructive-foreground transition-all active:scale-[0.97]"
+                >
+                  {t.confirm}
+                </button>
+              </div>
+            </div>
+          )}
         </section>
       </main>
 
