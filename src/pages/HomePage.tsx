@@ -41,7 +41,14 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="flex items-center justify-between px-6 pt-14 pb-2">
         <div className="w-10" />
-        <img src={logo} alt="MYLEGACY" className="h-12 object-contain logo-breathe" />
+        <video
+          src="/logo-anim.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="h-16 w-16 object-contain rounded-full"
+        />
         <button onClick={() => navigate("/settings")} className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <Settings size={22} />
         </button>
