@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { getEntriesFromDb, deleteEntryFromDb, type DiaryEntry } from "@/lib/diary-store";
+import { getEntriesFromDb, deleteEntryFromDb, chapterLabels, type DiaryEntry } from "@/lib/diary-store";
 import { BookOpen, Trash2, ChevronRight, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import LanguageToggle from "@/components/LanguageToggle";
