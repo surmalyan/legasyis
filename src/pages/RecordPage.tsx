@@ -3,14 +3,17 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { saveEntryToDb } from "@/lib/diary-store";
-import { transcribeAudio, generateAIStory } from "@/lib/ai-service";
+import { transcribeAudio, classifyAnswer } from "@/lib/ai-service";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Mic, Square, Play, Pause, RotateCcw, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-type ProcessingStep = null | "transcribing" | "generating";
+type ProcessingStep = null | "transcribing" | "saving";
 
 const RecordPage = () => {
   const { t, lang } = useI18n();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const question = (location.state as any)?.question || "";
@@ -47,7 +50,7 @@ const RecordPage = () => {
   };
 
   const handleSubmit = async () => {
-    if (!recorder.recording) return;
+    if (!recorder.recording || !user) return;
     try {
       setProcessing("transcribing");
       const transcript = await transcribeAudio(recorder.recording.blob, lang);
@@ -57,13 +60,25 @@ const RecordPage = () => {
         return;
       }
 
-      setProcessing("generating");
-      const aiStory = await generateAIStory(transcript, question, lang);
+      // Save voice recording for future voice synthesis
+      const voicePath = `${user.id}/entry-${Date.now()}.webm`;
+      await supabase.storage.from("voice-notes").upload(voicePath, recorder.recording.blob);
+      await supabase.from("voice_recordings").insert({
+        user_id: user.id,
+        storage_path: voicePath,
+        duration_seconds: recorder.recording.duration,
+        field_key: "entry",
+      });
+
+      setProcessing("saving");
+      // Classify into chapter, save raw text
+      const { chapter } = await classifyAnswer(transcript, question, lang);
 
       const id = await saveEntryToDb({
         question,
         original_text: transcript,
-        ai_story: aiStory,
+        ai_story: transcript, // Raw text, no embellishment
+        chapter,
       });
 
       setProcessing(null);
@@ -74,7 +89,8 @@ const RecordPage = () => {
             date: new Date().toISOString(),
             question,
             answer: transcript,
-            story: aiStory,
+            story: transcript,
+            chapter,
           },
         },
       });
@@ -83,7 +99,7 @@ const RecordPage = () => {
       if (err.message === "rate_limited") {
         toast.error(lang === "ru" ? "Слишком много запросов." : "Too many requests.");
       } else if (err.message === "payment_required") {
-        toast.error(lang === "ru" ? "Необходимо пополнить баланс AI." : "AI credits need to be topped up.");
+        toast.error(lang === "ru" ? "Необходимо пополнить баланс." : "Credits need to be topped up.");
       } else {
         toast.error(lang === "ru" ? "Произошла ошибка." : "Something went wrong.");
       }
@@ -95,7 +111,7 @@ const RecordPage = () => {
   const micError = lang === "ru" ? "Не удалось получить доступ к микрофону" : "Could not access the microphone";
   const processingLabel = processing === "transcribing"
     ? (lang === "ru" ? "Распознаю речь..." : "Transcribing...")
-    : (lang === "ru" ? "Создаю историю..." : "Generating story...");
+    : (lang === "ru" ? "Сохраняю запись..." : "Saving...");
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

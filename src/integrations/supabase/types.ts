@@ -17,6 +17,7 @@ export type Database = {
       entries: {
         Row: {
           ai_story: string
+          chapter: string | null
           created_at: string
           id: string
           original_text: string
@@ -25,6 +26,7 @@ export type Database = {
         }
         Insert: {
           ai_story: string
+          chapter?: string | null
           created_at?: string
           id?: string
           original_text: string
@@ -33,6 +35,7 @@ export type Database = {
         }
         Update: {
           ai_story?: string
+          chapter?: string | null
           created_at?: string
           id?: string
           original_text?: string

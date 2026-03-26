@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { getEntriesFromDb, deleteEntryFromDb, type DiaryEntry } from "@/lib/diary-store";
+import { getEntriesFromDb, deleteEntryFromDb, chapterLabels, type DiaryEntry } from "@/lib/diary-store";
 import { BookOpen, Trash2, ChevronRight, LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import LanguageToggle from "@/components/LanguageToggle";
@@ -97,7 +97,8 @@ const ArchivePage = () => {
                 </div>
                 <div className="space-y-3">
                   {items.map((entry) => {
-                    const title = extractTitle(entry.story);
+                    const chapterKey = entry.chapter || "reflections";
+                    const chapterLabel = chapterLabels[lang]?.[chapterKey] || chapterKey;
                     return (
                       <button key={entry.id} onClick={() => navigate("/result", { state: { entry } })} className="w-full text-left bg-card rounded-2xl p-5 border border-border shadow-sm transition-all active:scale-[0.98] hover:border-primary/30 group">
                         <div className="flex items-start gap-4">
@@ -106,7 +107,9 @@ const ArchivePage = () => {
                             <span className="text-[10px] uppercase text-muted-foreground leading-tight mt-0.5">{new Date(entry.date).toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", { month: "short" }).replace(".", "")}</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            {title && <h3 className="text-base font-semibold text-foreground mb-1 line-clamp-1">{title}</h3>}
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">{chapterLabel}</span>
+                            </div>
                             <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{entry.question}</p>
                           </div>
                           <div className="shrink-0 flex items-center gap-1 self-center">

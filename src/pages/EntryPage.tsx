@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { saveEntryToDb } from "@/lib/diary-store";
-import { generateAIStory } from "@/lib/ai-service";
+import { classifyAnswer } from "@/lib/ai-service";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -13,22 +13,25 @@ const EntryPage = () => {
   const question = (location.state as any)?.question || "";
 
   const [answer, setAnswer] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
     if (!answer.trim()) return;
 
     try {
-      setIsGenerating(true);
-      const aiStory = await generateAIStory(answer, question, lang);
+      setIsSaving(true);
+      
+      // Classify into a chapter, keep raw text
+      const { chapter } = await classifyAnswer(answer, question, lang);
 
       const id = await saveEntryToDb({
         question,
         original_text: answer,
-        ai_story: aiStory,
+        ai_story: answer, // Save raw text, no embellishment
+        chapter,
       });
 
-      setIsGenerating(false);
+      setIsSaving(false);
       navigate("/result", {
         state: {
           entry: {
@@ -36,16 +39,17 @@ const EntryPage = () => {
             date: new Date().toISOString(),
             question,
             answer,
-            story: aiStory,
+            story: answer,
+            chapter,
           },
         },
       });
     } catch (err: any) {
-      setIsGenerating(false);
+      setIsSaving(false);
       if (err.message === "rate_limited") {
         toast.error(lang === "ru" ? "Слишком много запросов. Подождите немного." : "Too many requests. Please wait a moment.");
       } else if (err.message === "payment_required") {
-        toast.error(lang === "ru" ? "Необходимо пополнить баланс AI." : "AI credits need to be topped up.");
+        toast.error(lang === "ru" ? "Необходимо пополнить баланс." : "Credits need to be topped up.");
       } else {
         toast.error(lang === "ru" ? "Произошла ошибка. Попробуйте ещё раз." : "Something went wrong. Please try again.");
       }
@@ -58,7 +62,7 @@ const EntryPage = () => {
       <header className="flex items-center gap-3 px-6 pt-14 pb-4">
         <button
           onClick={() => navigate(-1)}
-          disabled={isGenerating}
+          disabled={isSaving}
           className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
         >
           <ArrowLeft size={24} />
@@ -75,19 +79,19 @@ const EntryPage = () => {
           value={answer}
           onChange={(e) => setAnswer(e.target.value)}
           placeholder={t("yourAnswer")}
-          disabled={isGenerating}
+          disabled={isSaving}
           className="flex-1 min-h-[200px] w-full bg-card border border-border rounded-2xl p-5 text-lg text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
         />
 
         <button
           onClick={handleSave}
-          disabled={!answer.trim() || isGenerating}
+          disabled={!answer.trim() || isSaving}
           className="mt-6 w-full flex items-center justify-center gap-3 bg-primary text-primary-foreground rounded-2xl py-5 text-lg font-medium transition-all active:scale-[0.97] hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isGenerating ? (
+          {isSaving ? (
             <>
               <Loader2 size={22} className="animate-spin" />
-              {lang === "ru" ? "Создаю историю..." : "Generating story..."}
+              {lang === "ru" ? "Сохраняю..." : "Saving..."}
             </>
           ) : (
             t("save")

@@ -6,6 +6,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const CHAPTERS = [
+  "childhood",
+  "family",
+  "career",
+  "values",
+  "dreams",
+  "travel",
+  "gratitude",
+  "wisdom",
+  "daily_life",
+  "relationships",
+  "memories",
+  "reflections",
+];
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -28,23 +43,17 @@ serve(async (req) => {
 
     const systemPrompt =
       lang === "ru"
-        ? `Ты профессиональный писатель биографий.
-Преврати текст в красивую, эмоциональную историю.
-Добавь заголовок.
-Сохрани смысл.
-150-300 слов.
-Без выдумок.
-Пиши на русском языке.`
-        : `You are a professional biography writer.
-Turn the text into a beautiful, emotional story.
-Add a title.
-Preserve the meaning.
-150-300 words.
-No fiction.
-Write in English.`;
+        ? `Ты помощник для классификации текстов по главам автобиографии. 
+Прочитай ответ человека на вопрос и определи, к какой главе он относится.
+Верни ТОЛЬКО название главы из списка: ${CHAPTERS.join(", ")}.
+Ничего кроме названия главы.`
+        : `You are a helper that classifies autobiography texts into chapters.
+Read the person's answer and determine which chapter it belongs to.
+Return ONLY the chapter name from this list: ${CHAPTERS.join(", ")}.
+Nothing else but the chapter name.`;
 
     const userMessage = question
-      ? `Вопрос, на который отвечал человек: "${question}"\n\nОтвет:\n${text}`
+      ? `Question: "${question}"\n\nAnswer:\n${text}`
       : text;
 
     const response = await fetch(
@@ -56,7 +65,7 @@ Write in English.`;
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "google/gemini-2.5-flash-lite",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: userMessage },
@@ -83,19 +92,22 @@ Write in English.`;
       }
 
       return new Response(
-        JSON.stringify({ error: "story_generation_failed" }),
+        JSON.stringify({ error: "classification_failed" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const result = await response.json();
-    const aiStory = result.choices?.[0]?.message?.content?.trim() || "";
+    const raw = result.choices?.[0]?.message?.content?.trim().toLowerCase() || "";
+    
+    // Match to valid chapter or default
+    const chapter = CHAPTERS.find((c) => raw.includes(c)) || "reflections";
 
-    return new Response(JSON.stringify({ ai_story: aiStory }), {
+    return new Response(JSON.stringify({ chapter, ai_story: text }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("generate-story error:", e);
+    console.error("classify error:", e);
     return new Response(
       JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
