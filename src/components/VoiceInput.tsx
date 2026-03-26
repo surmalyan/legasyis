@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
@@ -17,26 +17,33 @@ const VoiceInput = ({ fieldKey, onTranscribed, lang }: VoiceInputProps) => {
   const [transcribing, setTranscribing] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const pendingTranscribeRef = useRef(false);
 
-  const handleStopAndTranscribe = async () => {
+  // When recording becomes available after stop, auto-transcribe if pending
+  useEffect(() => {
+    if (recording && pendingTranscribeRef.current) {
+      pendingTranscribeRef.current = false;
+      transcribe(recording.blob);
+    }
+  }, [recording]);
+
+  const handleStopAndTranscribe = () => {
+    pendingTranscribeRef.current = true;
     stop();
-    // Wait for recording to be available
-    setTimeout(async () => {
-      await transcribe();
-    }, 500);
   };
 
-  const transcribe = async () => {
-    if (!recording || !user) return;
+  const transcribe = async (blob?: Blob) => {
+    const audioBlob = blob || recording?.blob;
+    if (!audioBlob || !user) return;
     setTranscribing(true);
     try {
       // Upload voice note
       const path = `${user.id}/${fieldKey}-${Date.now()}.webm`;
-      await supabase.storage.from("voice-notes").upload(path, recording.blob);
+      await supabase.storage.from("voice-notes").upload(path, audioBlob);
 
       // Use the existing transcribe edge function
       const formData = new FormData();
-      formData.append("audio", recording.blob, "recording.webm");
+      formData.append("audio", audioBlob, "recording.webm");
       formData.append("lang", lang);
 
       const { data, error } = await supabase.functions.invoke("transcribe", {
@@ -86,7 +93,7 @@ const VoiceInput = ({ fieldKey, onTranscribed, lang }: VoiceInputProps) => {
           {playing ? <Pause size={14} /> : <Play size={14} />}
         </button>
         <button
-          onClick={transcribe}
+          onClick={() => transcribe()}
           className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-xl font-medium"
         >
           {lang === "ru" ? "Распознать" : "Transcribe"}
