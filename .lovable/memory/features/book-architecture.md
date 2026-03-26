@@ -11,7 +11,7 @@ Architecture: question→chapter mapping, raw text storage, future book generati
 childhood, family, relationships, career, daily_life, travel, dreams, values, gratitude, wisdom, memories, reflections
 
 ## Question Pool
-48 questions (4 per chapter), each with ru/en translations, defined in diary-store.ts
+~1000 questions (~84 per chapter), each with ru/en translations, defined in src/lib/questions.ts
 
 ## Future: Book Generation
 - Entries grouped by chapter in predefined order
