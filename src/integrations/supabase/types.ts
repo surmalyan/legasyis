@@ -184,6 +184,33 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_recordings: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          field_key: string | null
+          id: string
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          field_key?: string | null
+          id?: string
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          field_key?: string | null
+          id?: string
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
