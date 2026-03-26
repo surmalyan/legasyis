@@ -6,8 +6,41 @@ export interface DiaryEntry {
   question: string;
   answer: string;
   story: string;
+  chapter?: string;
   audioUrl?: string;
 }
+
+// Chapter labels for display
+export const chapterLabels: Record<string, Record<string, string>> = {
+  ru: {
+    childhood: "Детство",
+    family: "Семья",
+    career: "Карьера",
+    values: "Ценности",
+    dreams: "Мечты",
+    travel: "Путешествия",
+    gratitude: "Благодарность",
+    wisdom: "Мудрость",
+    daily_life: "Повседневность",
+    relationships: "Отношения",
+    memories: "Воспоминания",
+    reflections: "Размышления",
+  },
+  en: {
+    childhood: "Childhood",
+    family: "Family",
+    career: "Career",
+    values: "Values",
+    dreams: "Dreams",
+    travel: "Travel",
+    gratitude: "Gratitude",
+    wisdom: "Wisdom",
+    daily_life: "Daily Life",
+    relationships: "Relationships",
+    memories: "Memories",
+    reflections: "Reflections",
+  },
+};
 
 // ── Supabase operations ──
 
@@ -15,6 +48,7 @@ export async function saveEntryToDb(entry: {
   question: string;
   original_text: string;
   ai_story: string;
+  chapter?: string;
 }): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not_authenticated");
@@ -26,7 +60,8 @@ export async function saveEntryToDb(entry: {
       question: entry.question,
       original_text: entry.original_text,
       ai_story: entry.ai_story,
-    })
+      ...(entry.chapter ? { chapter: entry.chapter } : {}),
+    } as any)
     .select("id")
     .single();
 
@@ -42,12 +77,13 @@ export async function getEntriesFromDb(): Promise<DiaryEntry[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: any) => ({
     id: row.id,
     date: row.created_at,
     question: row.question,
     answer: row.original_text,
     story: row.ai_story,
+    chapter: row.chapter || "reflections",
   }));
 }
 
@@ -56,7 +92,7 @@ export async function deleteEntryFromDb(id: string): Promise<void> {
   if (error) throw error;
 }
 
-// ── Legacy localStorage helpers (kept for offline fallback) ──
+// ── Legacy localStorage helpers ──
 
 const STORAGE_KEY = "diary-entries";
 
