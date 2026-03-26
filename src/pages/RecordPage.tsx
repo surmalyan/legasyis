@@ -2,8 +2,8 @@ import { useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
-import { saveEntryToDb } from "@/lib/diary-store";
-import { transcribeAudio, classifyAnswer } from "@/lib/ai-service";
+import { saveEntryToDb, chapterLabels } from "@/lib/diary-store";
+import { transcribeAudio } from "@/lib/ai-service";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Mic, Square, Play, Pause, RotateCcw, Send, Loader2 } from "lucide-react";
@@ -17,11 +17,14 @@ const RecordPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const question = (location.state as any)?.question || "";
+  const chapter = (location.state as any)?.chapter || "reflections";
 
   const recorder = useAudioRecorder();
   const [isPlaying, setIsPlaying] = useState(false);
   const [processing, setProcessing] = useState<ProcessingStep>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const chapterLabel = chapterLabels[lang]?.[chapter] || chapter;
 
   const handleToggleRecord = () => {
     if (recorder.isRecording) recorder.stop();
@@ -71,13 +74,11 @@ const RecordPage = () => {
       });
 
       setProcessing("saving");
-      // Classify into chapter, save raw text
-      const { chapter } = await classifyAnswer(transcript, question, lang);
-
+      // Chapter is already known from the question
       const id = await saveEntryToDb({
         question,
         original_text: transcript,
-        ai_story: transcript, // Raw text, no embellishment
+        ai_story: transcript,
         chapter,
       });
 
@@ -119,7 +120,10 @@ const RecordPage = () => {
         <button onClick={() => navigate(-1)} disabled={!!processing} className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors disabled:opacity-40">
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-lg font-semibold text-foreground">{t("recordAudio")}</h1>
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">{t("recordAudio")}</h1>
+          <span className="text-[10px] text-primary font-medium">{chapterLabel}</span>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col items-center px-6 pb-8">

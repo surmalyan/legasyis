@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { getTodayQuestion, getRandomQuestion } from "@/lib/diary-store";
+import { getTodayQuestion, getRandomQuestion, chapterLabels } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw, Settings } from "lucide-react";
@@ -12,7 +12,7 @@ import logo from "@/assets/logo.png";
 const HomePage = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
-  const [question, setQuestion] = useState(() => getTodayQuestion(lang));
+  const [questionData, setQuestionData] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed } = useSubscription();
 
@@ -23,10 +23,10 @@ const HomePage = () => {
   const handleNewQuestion = useCallback(() => {
     setIsSwapping(true);
     setTimeout(() => {
-      setQuestion(getRandomQuestion(lang, question));
+      setQuestionData(getRandomQuestion(lang, questionData.text));
       setIsSwapping(false);
     }, 250);
-  }, [lang, question]);
+  }, [lang, questionData.text]);
 
   const handleAction = (path: string, state: any) => {
     if (!canCreate) {
@@ -35,6 +35,8 @@ const HomePage = () => {
     }
     navigate(path, { state });
   };
+
+  const chapterLabel = chapterLabels[lang]?.[questionData.chapter] || questionData.chapter;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -55,12 +57,19 @@ const HomePage = () => {
             })}
           </p>
 
-          <p className="text-[11px] uppercase tracking-[0.2em] text-primary font-semibold text-center mb-8">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-primary font-semibold text-center mb-2">
             {t("questionOfTheDay")}
           </p>
 
+          {/* Chapter badge */}
+          <div className="flex justify-center mb-6">
+            <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium tracking-wide">
+              {chapterLabel}
+            </span>
+          </div>
+
           <div className={`bg-card rounded-3xl px-8 py-12 shadow-sm border border-border mb-4 transition-all duration-250 ${isSwapping ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
-            <p className="text-[1.65rem] leading-[1.45] font-serif-display font-light text-foreground text-center">{question}</p>
+            <p className="text-[1.65rem] leading-[1.45] font-serif-display font-light text-foreground text-center">{questionData.text}</p>
           </div>
 
           <div className="flex justify-center mb-10">
@@ -82,7 +91,7 @@ const HomePage = () => {
 
           <div className="space-y-3">
             <button
-              onClick={() => handleAction("/entry", { question, mode: "text" })}
+              onClick={() => handleAction("/entry", { question: questionData.text, chapter: questionData.chapter, mode: "text" })}
               className="w-full flex items-center justify-center gap-3 bg-primary text-primary-foreground rounded-2xl py-5 text-lg font-medium transition-all active:scale-[0.97] hover:opacity-90"
             >
               <PenLine size={22} />
@@ -90,7 +99,7 @@ const HomePage = () => {
             </button>
 
             <button
-              onClick={() => handleAction("/record", { question })}
+              onClick={() => handleAction("/record", { question: questionData.text, chapter: questionData.chapter })}
               className="w-full flex items-center justify-center gap-3 bg-secondary text-secondary-foreground rounded-2xl py-5 text-lg font-medium transition-all active:scale-[0.97] hover:bg-accent"
             >
               <Mic size={22} />
