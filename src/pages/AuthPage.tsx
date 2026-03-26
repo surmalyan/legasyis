@@ -39,6 +39,7 @@ const AuthPage = () => {
     weakPassword: lang === "ru" ? "Пароль должен быть не менее 6 символов" : "Password must be at least 6 characters",
     emailTaken: lang === "ru" ? "Этот email уже зарегистрирован" : "This email is already registered",
     rateLimited: lang === "ru" ? "Слишком много попыток. Подождите немного" : "Too many attempts. Please wait",
+    rememberMe: lang === "ru" ? "Запомнить меня" : "Remember me",
   };
 
   if (!authLoading && user) {
