@@ -69,6 +69,39 @@ const SettingsPage = () => {
     navigate("/auth");
   };
 
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error(lang === "ru" ? "Пароль должен быть не менее 6 символов" : "Password must be at least 6 characters");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error(lang === "ru" ? "Пароли не совпадают" : "Passwords don't match");
+      return;
+    }
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) {
+        toast.error(lang === "ru" ? "Ошибка смены пароля" : "Failed to change password");
+      } else {
+        toast.success(lang === "ru" ? "Пароль успешно изменён" : "Password changed successfully");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    } catch {
+      toast.error(lang === "ru" ? "Ошибка" : "Error");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    toast.error(lang === "ru" 
+      ? "Для удаления аккаунта напишите в поддержку" 
+      : "To delete your account, contact support");
+    setShowDeleteConfirm(false);
+  };
+
   const t = {
     settings: lang === "ru" ? "Настройки" : "Settings",
     notifications: lang === "ru" ? "Уведомления" : "Notifications",
@@ -81,6 +114,14 @@ const SettingsPage = () => {
     frequency: lang === "ru" ? "Частота" : "Frequency",
     account: lang === "ru" ? "Аккаунт" : "Account",
     signOut: lang === "ru" ? "Выйти" : "Sign Out",
+    changePassword: lang === "ru" ? "Сменить пароль" : "Change Password",
+    newPassword: lang === "ru" ? "Новый пароль" : "New password",
+    confirmPassword: lang === "ru" ? "Подтвердите пароль" : "Confirm password",
+    save: lang === "ru" ? "Сохранить" : "Save",
+    deleteAccount: lang === "ru" ? "Удалить аккаунт" : "Delete Account",
+    deleteWarning: lang === "ru" ? "Это действие необратимо. Все ваши данные будут удалены." : "This action is irreversible. All your data will be deleted.",
+    cancel: lang === "ru" ? "Отмена" : "Cancel",
+    confirm: lang === "ru" ? "Удалить" : "Delete",
     notSupported: lang === "ru"
       ? "Уведомления не поддерживаются в этом браузере"
       : "Notifications not supported in this browser",
