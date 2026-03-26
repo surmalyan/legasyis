@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import type { NotificationFrequency } from "@/lib/notifications";
 import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
 import {
   isNotificationSupported,
   getNotificationSettings,
@@ -10,8 +11,9 @@ import {
   requestNotificationPermission,
   getNotificationPermission,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon, Lock, Trash2, Loader2 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
+import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 
 const SettingsPage = () => {
