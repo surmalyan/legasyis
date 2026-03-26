@@ -93,7 +93,7 @@ const VoiceInput = ({ fieldKey, onTranscribed, lang }: VoiceInputProps) => {
           {playing ? <Pause size={14} /> : <Play size={14} />}
         </button>
         <button
-          onClick={transcribe}
+          onClick={() => transcribe()}
           className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded-xl font-medium"
         >
           {lang === "ru" ? "Распознать" : "Transcribe"}
