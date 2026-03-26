@@ -17,13 +17,19 @@ const VoiceInput = ({ fieldKey, onTranscribed, lang }: VoiceInputProps) => {
   const [transcribing, setTranscribing] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const pendingTranscribeRef = useRef(false);
 
-  const handleStopAndTranscribe = async () => {
+  // When recording becomes available after stop, auto-transcribe if pending
+  useEffect(() => {
+    if (recording && pendingTranscribeRef.current) {
+      pendingTranscribeRef.current = false;
+      transcribe(recording.blob);
+    }
+  }, [recording]);
+
+  const handleStopAndTranscribe = () => {
+    pendingTranscribeRef.current = true;
     stop();
-    // Wait for recording to be available
-    setTimeout(async () => {
-      await transcribe();
-    }, 500);
   };
 
   const transcribe = async () => {
