@@ -144,6 +144,21 @@ const AuthPage = () => {
             </div>
           )}
 
+          {isLogin && !isForgot && (
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => {
+                  setRememberMe(e.target.checked);
+                  localStorage.setItem("mylegacy_remember", String(e.target.checked));
+                }}
+                className="w-4 h-4 rounded border-border text-primary accent-primary"
+              />
+              <span className="text-sm text-muted-foreground">{t.rememberMe}</span>
+            </label>
+          )}
+
           <button
             type="submit"
             disabled={loading || !email.trim() || (!isForgot && !password.trim())}
