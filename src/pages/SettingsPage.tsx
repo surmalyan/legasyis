@@ -27,7 +27,10 @@ const SettingsPage = () => {
   const [preferredHour, setPreferredHour] = useState(9);
   const [preferredMinute, setPreferredMinute] = useState(0);
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
-
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   useEffect(() => {
     const settings = getNotificationSettings();
     setNotifEnabled(settings.enabled);
