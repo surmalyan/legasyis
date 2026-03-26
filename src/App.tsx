@@ -17,6 +17,7 @@ import ProfilePage from "./pages/ProfilePage";
 import FamilyTreePage from "./pages/FamilyTreePage";
 import ExportPage from "./pages/ExportPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import VoiceLibraryPage from "./pages/VoiceLibraryPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/family-tree" element={<ProtectedRoute><FamilyTreePage /></ProtectedRoute>} />
               <Route path="/export" element={<ProtectedRoute><ExportPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+              <Route path="/voice-library" element={<ProtectedRoute><VoiceLibraryPage /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
