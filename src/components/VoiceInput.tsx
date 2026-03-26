@@ -32,8 +32,9 @@ const VoiceInput = ({ fieldKey, onTranscribed, lang }: VoiceInputProps) => {
     stop();
   };
 
-  const transcribe = async () => {
-    if (!recording || !user) return;
+  const transcribe = async (blob?: Blob) => {
+    const audioBlob = blob || recording?.blob;
+    if (!audioBlob || !user) return;
     setTranscribing(true);
     try {
       // Upload voice note
