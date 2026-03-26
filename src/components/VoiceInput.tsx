@@ -41,6 +41,15 @@ const VoiceInput = ({ fieldKey, onTranscribed, lang }: VoiceInputProps) => {
       const path = `${user.id}/${fieldKey}-${Date.now()}.webm`;
       await supabase.storage.from("voice-notes").upload(path, audioBlob);
 
+      // Save recording metadata to DB for future voice synthesis
+      const duration = recording?.duration || 0;
+      await supabase.from("voice_recordings").insert({
+        user_id: user.id,
+        storage_path: path,
+        duration_seconds: duration,
+        field_key: fieldKey,
+      });
+
       // Use the existing transcribe edge function
       const formData = new FormData();
       formData.append("audio", audioBlob, "recording.webm");
