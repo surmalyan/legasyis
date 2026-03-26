@@ -1,6 +1,6 @@
 import { useI18n } from "@/lib/i18n";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BookOpen, Home, Settings, User, GitBranch, Download, Mic } from "lucide-react";
+import { BookOpen, Home, User, GitBranch, Mic } from "lucide-react";
 
 const BottomNav = () => {
   const { lang } = useI18n();
@@ -17,21 +17,21 @@ const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border safe-bottom z-50">
-      <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
+      <div className="flex justify-around items-center h-14 max-w-lg mx-auto px-1">
         {tabs.map(({ path, label, icon: Icon }) => {
           const active = location.pathname === path;
           return (
             <button
               key={path}
               onClick={() => navigate(path)}
-              className={`flex flex-col items-center gap-1 px-6 py-2 rounded-xl transition-colors ${
+              className={`flex flex-col items-center gap-0.5 min-w-0 flex-1 py-1.5 rounded-lg transition-colors ${
                 active
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon size={24} strokeWidth={active ? 2.5 : 1.5} />
-              <span className="text-xs font-medium">{label}</span>
+              <Icon size={20} strokeWidth={active ? 2.5 : 1.5} />
+              <span className="text-[10px] font-medium truncate max-w-full">{label}</span>
             </button>
           );
         })}
