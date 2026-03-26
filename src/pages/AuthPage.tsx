@@ -16,6 +16,7 @@ const AuthPage = () => {
   const [isForgot, setIsForgot] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("mylegacy_remember") === "true");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -38,6 +39,7 @@ const AuthPage = () => {
     weakPassword: lang === "ru" ? "Пароль должен быть не менее 6 символов" : "Password must be at least 6 characters",
     emailTaken: lang === "ru" ? "Этот email уже зарегистрирован" : "This email is already registered",
     rateLimited: lang === "ru" ? "Слишком много попыток. Подождите немного" : "Too many attempts. Please wait",
+    rememberMe: lang === "ru" ? "Запомнить меня" : "Remember me",
   };
 
   if (!authLoading && user) {
@@ -140,6 +142,21 @@ const AuthPage = () => {
                 className="w-full bg-card border border-border rounded-2xl pl-12 pr-4 py-4 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow disabled:opacity-60"
               />
             </div>
+          )}
+
+          {isLogin && !isForgot && (
+            <label className="flex items-center gap-2 cursor-pointer py-1">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => {
+                  setRememberMe(e.target.checked);
+                  localStorage.setItem("mylegacy_remember", String(e.target.checked));
+                }}
+                className="w-4 h-4 rounded border-border text-primary accent-primary"
+              />
+              <span className="text-sm text-muted-foreground">{t.rememberMe}</span>
+            </label>
           )}
 
           <button

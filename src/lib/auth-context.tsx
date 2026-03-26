@@ -36,7 +36,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // If "remember me" is off, sign out when browser closes
+    const handleBeforeUnload = () => {
+      const remember = localStorage.getItem("mylegacy_remember");
+      if (remember === "false") {
+        // Mark for cleanup on next load
+        sessionStorage.setItem("mylegacy_should_signout", "true");
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    // Check if we need to sign out (new session after browser was closed without "remember me")
+    const shouldSignout = sessionStorage.getItem("mylegacy_should_signout");
+    if (shouldSignout === "true") {
+      sessionStorage.removeItem("mylegacy_should_signout");
+      supabase.auth.signOut();
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, []);
 
   const signOut = async () => {
