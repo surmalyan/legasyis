@@ -1,6 +1,6 @@
 import { useI18n } from "@/lib/i18n";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BookOpen, Home, Settings, User, GitBranch, Download } from "lucide-react";
+import { BookOpen, Home, Settings, User, GitBranch, Download, Mic } from "lucide-react";
 
 const BottomNav = () => {
   const { lang } = useI18n();
