@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { saveEntryToDb } from "@/lib/diary-store";
-import { classifyAnswer } from "@/lib/ai-service";
+import { saveEntryToDb, chapterLabels } from "@/lib/diary-store";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -11,23 +10,23 @@ const EntryPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const question = (location.state as any)?.question || "";
+  const chapter = (location.state as any)?.chapter || "reflections";
 
   const [answer, setAnswer] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const chapterLabel = chapterLabels[lang]?.[chapter] || chapter;
 
   const handleSave = async () => {
     if (!answer.trim()) return;
 
     try {
       setIsSaving(true);
-      
-      // Classify into a chapter, keep raw text
-      const { chapter } = await classifyAnswer(answer, question, lang);
 
       const id = await saveEntryToDb({
         question,
         original_text: answer,
-        ai_story: answer, // Save raw text, no embellishment
+        ai_story: answer,
         chapter,
       });
 
@@ -46,13 +45,7 @@ const EntryPage = () => {
       });
     } catch (err: any) {
       setIsSaving(false);
-      if (err.message === "rate_limited") {
-        toast.error(lang === "ru" ? "Слишком много запросов. Подождите немного." : "Too many requests. Please wait a moment.");
-      } else if (err.message === "payment_required") {
-        toast.error(lang === "ru" ? "Необходимо пополнить баланс." : "Credits need to be topped up.");
-      } else {
-        toast.error(lang === "ru" ? "Произошла ошибка. Попробуйте ещё раз." : "Something went wrong. Please try again.");
-      }
+      toast.error(lang === "ru" ? "Произошла ошибка. Попробуйте ещё раз." : "Something went wrong. Please try again.");
       console.error("Save error:", err);
     }
   };
@@ -67,7 +60,10 @@ const EntryPage = () => {
         >
           <ArrowLeft size={24} />
         </button>
-        <h1 className="text-lg font-semibold text-foreground">{t("writeAnswer")}</h1>
+        <div>
+          <h1 className="text-lg font-semibold text-foreground">{t("writeAnswer")}</h1>
+          <span className="text-[10px] text-primary font-medium">{chapterLabel}</span>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col px-6 pb-8">
