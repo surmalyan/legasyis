@@ -10,9 +10,9 @@ const BottomNav = () => {
   const tabs = [
     { path: "/", label: lang === "ru" ? "Главная" : "Home", icon: Home },
     { path: "/profile", label: lang === "ru" ? "Анкета" : "Profile", icon: User },
+    { path: "/voice-library", label: lang === "ru" ? "Голос" : "Voice", icon: Mic },
     { path: "/family-tree", label: lang === "ru" ? "Древо" : "Tree", icon: GitBranch },
     { path: "/archive", label: lang === "ru" ? "Архив" : "Archive", icon: BookOpen },
-    { path: "/export", label: lang === "ru" ? "PDF" : "PDF", icon: Download },
   ];
 
   return (
