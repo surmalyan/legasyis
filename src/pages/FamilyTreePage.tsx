@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import FamilyTreeNode from "@/components/family-tree/FamilyTreeNode";
 import AddMemberForm from "@/components/family-tree/AddMemberForm";
 import InviteFamilyModal from "@/components/family-tree/InviteFamilyModal";
+import ZoomPanCanvas from "@/components/family-tree/ZoomPanCanvas";
 
 interface FamilyMember {
   id: string;
