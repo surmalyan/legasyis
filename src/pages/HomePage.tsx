@@ -1,17 +1,19 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { getTodayQuestion, getRandomQuestion, chapterLabels } from "@/lib/diary-store";
+import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels, depthDescriptions } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import ChapterProgress from "@/components/ChapterProgress";
 import BottomNav from "@/components/BottomNav";
+import type { QuestionDepth } from "@/lib/questions";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const [selectedDepth, setSelectedDepth] = useState<QuestionDepth | undefined>(undefined);
   const [questionData, setQuestionData] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed, isTrial, trialDaysLeft } = useSubscription();
