@@ -4,5 +4,5 @@ Brand: Legacy — organic/hand-drawn ink aesthetic with infinity-plant logo
 - Body font: Inter
 - Color scheme: earthy, dark warm browns as primary, cream backgrounds
 - Primary: dark warm brown hsl(30, 20%, 15%)
-- App name is always "MYLEGACY" in both languages
+- App name is always "Legacy" in both languages
 - Logo animation: .logo-breathe (gentle scale pulse)
