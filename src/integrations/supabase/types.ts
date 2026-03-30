@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      family_connections: {
+        Row: {
+          created_at: string
+          id: string
+          relationship: string
+          requester_id: string
+          status: string
+          target_email: string
+          target_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          relationship: string
+          requester_id: string
+          status?: string
+          target_email: string
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          relationship?: string
+          requester_id?: string
+          status?: string
+          target_email?: string
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       family_members: {
         Row: {
           birth_year: number | null
