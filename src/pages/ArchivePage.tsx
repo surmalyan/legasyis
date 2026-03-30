@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { getEntriesFromDb, deleteEntryFromDb, chapterLabels, type DiaryEntry } from "@/lib/diary-store";
-import { BookOpen, Trash2, ChevronRight, LogOut } from "lucide-react";
+import { BookOpen, Trash2, ChevronRight, LogOut, Search, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import LanguageToggle from "@/components/LanguageToggle";
 import BottomNav from "@/components/BottomNav";
@@ -14,6 +14,7 @@ const ArchivePage = () => {
   const { signOut } = useAuth();
   const [entries, setEntries] = useState<DiaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
 
   const loadEntries = async () => {
     try {
@@ -46,7 +47,18 @@ const ArchivePage = () => {
     return first.startsWith("#") ? first.replace(/^#+\s*/, "") : "";
   };
 
-  const grouped = entries.reduce<Record<string, DiaryEntry[]>>((acc, entry) => {
+  const filtered = useMemo(() => {
+    if (!search.trim()) return entries;
+    const q = search.toLowerCase();
+    return entries.filter(
+      (e) =>
+        e.question.toLowerCase().includes(q) ||
+        e.answer.toLowerCase().includes(q) ||
+        e.story.toLowerCase().includes(q)
+    );
+  }, [entries, search]);
+
+  const grouped = filtered.reduce<Record<string, DiaryEntry[]>>((acc, entry) => {
     const month = new Date(entry.date).toLocaleDateString(
       lang === "ru" ? "ru-RU" : "en-US",
       { month: "long", year: "numeric" }
@@ -67,16 +79,44 @@ const ArchivePage = () => {
         </div>
       </header>
 
-      <p className="px-6 pb-4 text-sm text-muted-foreground">
+      <p className="px-6 pb-2 text-sm text-muted-foreground">
         {lang === "ru"
-          ? `${entries.length} ${entries.length === 1 ? "запись" : entries.length < 5 ? "записи" : "записей"}`
-          : `${entries.length} ${entries.length === 1 ? "entry" : "entries"}`}
+          ? `${filtered.length} ${filtered.length === 1 ? "запись" : filtered.length < 5 ? "записи" : "записей"}${search ? ` из ${entries.length}` : ""}`
+          : `${filtered.length} ${filtered.length === 1 ? "entry" : "entries"}${search ? ` of ${entries.length}` : ""}`}
       </p>
+
+      <div className="px-6 pb-4">
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={lang === "ru" ? "Поиск по записям..." : "Search entries..."}
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
 
       <main className="flex-1 px-6 pb-24">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : filtered.length === 0 && search ? (
+          <div className="flex flex-col items-center justify-center h-48 text-center animate-fade-in">
+            <Search size={32} className="text-muted-foreground mb-3" />
+            <p className="text-base font-medium text-foreground mb-1">
+              {lang === "ru" ? "Ничего не найдено" : "No results found"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {lang === "ru" ? `По запросу «${search}»` : `For "${search}"`}
+            </p>
           </div>
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center animate-fade-in">
