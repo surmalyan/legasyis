@@ -79,11 +79,29 @@ const ArchivePage = () => {
         </div>
       </header>
 
-      <p className="px-6 pb-4 text-sm text-muted-foreground">
+      <p className="px-6 pb-2 text-sm text-muted-foreground">
         {lang === "ru"
-          ? `${entries.length} ${entries.length === 1 ? "запись" : entries.length < 5 ? "записи" : "записей"}`
-          : `${entries.length} ${entries.length === 1 ? "entry" : "entries"}`}
+          ? `${filtered.length} ${filtered.length === 1 ? "запись" : filtered.length < 5 ? "записи" : "записей"}${search ? ` из ${entries.length}` : ""}`
+          : `${filtered.length} ${filtered.length === 1 ? "entry" : "entries"}${search ? ` of ${entries.length}` : ""}`}
       </p>
+
+      <div className="px-6 pb-4">
+        <div className="relative">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={lang === "ru" ? "Поиск по записям..." : "Search entries..."}
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-border bg-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all"
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
 
       <main className="flex-1 px-6 pb-24">
         {loading ? (
