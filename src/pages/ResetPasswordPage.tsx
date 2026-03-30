@@ -61,7 +61,7 @@ const ResetPasswordPage = () => {
   if (!isRecovery) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
-        <img src={logo} alt="Legacy" className="w-24 h-24 object-contain rounded-full mb-6" />
+        <img src={logo} alt="Legacy" className="w-28 h-28 object-contain mb-6 logo-entrance" />
         <p className="text-muted-foreground text-center">{t.invalid}</p>
         <button onClick={() => navigate("/auth")} className="mt-4 text-primary underline text-sm">
           {lang === "ru" ? "Вернуться к входу" : "Back to sign in"}
