@@ -42,9 +42,15 @@ const ArchivePage = () => {
     }
   };
 
-  const extractTitle = (story: string) => {
-    const first = story.split("\n").find(Boolean) || "";
-    return first.startsWith("#") ? first.replace(/^#+\s*/, "") : "";
+  const highlightText = (text: string, query: string) => {
+    if (!query.trim()) return text;
+    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const parts = text.split(new RegExp(`(${escaped})`, "gi"));
+    return parts.map((part, i) =>
+      part.toLowerCase() === query.toLowerCase() ? (
+        <mark key={i} className="bg-primary/20 text-primary rounded-sm px-0.5">{part}</mark>
+      ) : part
+    );
   };
 
   const filtered = useMemo(() => {
@@ -150,7 +156,7 @@ const ArchivePage = () => {
                             <div className="flex items-center gap-2 mb-1">
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">{chapterLabel}</span>
                             </div>
-                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{entry.question}</p>
+                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{highlightText(entry.question, search)}</p>
                           </div>
                           <div className="shrink-0 flex items-center gap-1 self-center">
                             <span role="button" onClick={(e) => handleDelete(entry.id, e)} className="p-2 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"><Trash2 size={16} /></span>
