@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, Plus, Trash2, Loader2, Users, GitBranch } from "lucide-react";
+import { ChevronLeft, Plus, Loader2, UserPlus, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import FamilyTreeNode from "@/components/family-tree/FamilyTreeNode";
+import AddMemberForm from "@/components/family-tree/AddMemberForm";
+import InviteFamilyModal from "@/components/family-tree/InviteFamilyModal";
 
 interface FamilyMember {
   id: string;
@@ -15,6 +18,15 @@ interface FamilyMember {
   death_year: number | null;
   parent_member_id: string | null;
   notes: string | null;
+}
+
+interface FamilyConnection {
+  id: string;
+  requester_id: string;
+  target_email: string;
+  target_user_id: string | null;
+  relationship: string;
+  status: string;
 }
 
 const RELATIONSHIPS = {
@@ -35,118 +47,132 @@ const FamilyTreePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [members, setMembers] = useState<FamilyMember[]>([]);
+  const [connections, setConnections] = useState<FamilyConnection[]>([]);
+  const [incoming, setIncoming] = useState<FamilyConnection[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const [form, setForm] = useState({
-    name: "",
-    relationship: "",
-    birth_year: "",
-    death_year: "",
-    parent_member_id: "",
-    notes: "",
-  });
+  const [showInvite, setShowInvite] = useState(false);
 
   const t = {
     title: lang === "ru" ? "Семейное древо" : "Family Tree",
-    add: lang === "ru" ? "Добавить члена семьи" : "Add Family Member",
-    name: lang === "ru" ? "Имя" : "Name",
-    relationship: lang === "ru" ? "Кем приходится" : "Relationship",
-    birthYear: lang === "ru" ? "Год рождения" : "Birth Year",
-    deathYear: lang === "ru" ? "Год смерти (если)" : "Death Year (if applicable)",
-    parent: lang === "ru" ? "Родитель в древе" : "Parent in Tree",
-    notes: lang === "ru" ? "Заметки" : "Notes",
-    save: lang === "ru" ? "Сохранить" : "Save",
-    cancel: lang === "ru" ? "Отмена" : "Cancel",
-    empty: lang === "ru" ? "Добавьте первого члена семьи" : "Add your first family member",
-    none: lang === "ru" ? "Нет (корень)" : "None (root)",
+    empty: lang === "ru" ? "Начните строить своё семейное древо" : "Start building your family tree",
+    addMember: lang === "ru" ? "Добавить" : "Add Member",
+    invite: lang === "ru" ? "Связать аккаунт" : "Link Account",
+    pendingIn: lang === "ru" ? "Входящие запросы" : "Incoming Requests",
+    pendingSent: lang === "ru" ? "Отправленные" : "Sent Requests",
+    confirmed: lang === "ru" ? "Подтверждённые связи" : "Confirmed Links",
+    accepted: lang === "ru" ? "Связь подтверждена!" : "Connection confirmed!",
+    rejected: lang === "ru" ? "Связь отклонена" : "Connection rejected",
+    wantsConnect: lang === "ru" ? "хочет связать аккаунты как" : "wants to link accounts as",
   };
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     if (!user) return;
-    loadMembers();
+    const [membersRes, sentRes, inRes] = await Promise.all([
+      supabase.from("family_members").select("*").eq("user_id", user.id).order("created_at"),
+      supabase.from("family_connections" as any).select("*").eq("requester_id", user.id),
+      supabase.from("family_connections" as any).select("*").eq("target_user_id", user.id),
+    ]);
+    setMembers((membersRes.data as FamilyMember[]) || []);
+    setConnections((sentRes.data as FamilyConnection[]) || []);
+    setIncoming((inRes.data as FamilyConnection[]) || []);
+    setLoading(false);
   }, [user]);
 
-  const loadMembers = async () => {
-    if (!user) return;
-    const { data } = await supabase
-      .from("family_members")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at");
-    setMembers((data as FamilyMember[]) || []);
-    setLoading(false);
-  };
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
-  const handleAdd = async () => {
-    if (!user || !form.name.trim() || !form.relationship) return;
-    setSaving(true);
-    try {
-      const { error } = await supabase.from("family_members").insert({
-        user_id: user.id,
-        name: form.name.trim(),
-        relationship: form.relationship,
-        birth_year: form.birth_year ? parseInt(form.birth_year) : null,
-        death_year: form.death_year ? parseInt(form.death_year) : null,
-        parent_member_id: form.parent_member_id || null,
-        notes: form.notes.trim() || null,
-      });
-      if (error) throw error;
-      setForm({ name: "", relationship: "", birth_year: "", death_year: "", parent_member_id: "", notes: "" });
-      setShowForm(false);
-      await loadMembers();
-      toast.success(lang === "ru" ? "Добавлено!" : "Added!");
-    } catch {
-      toast.error(lang === "ru" ? "Ошибка" : "Error");
-    } finally {
-      setSaving(false);
-    }
-  };
+  // Check if current user has incoming connections by email
+  useEffect(() => {
+    if (!user?.email) return;
+    const matchEmail = async () => {
+      const { data } = await supabase
+        .from("family_connections" as any)
+        .select("*")
+        .eq("target_email", user.email!.toLowerCase())
+        .eq("status", "pending")
+        .is("target_user_id", null);
+      if (data && data.length > 0) {
+        // Auto-assign target_user_id
+        for (const conn of data as any[]) {
+          await supabase
+            .from("family_connections" as any)
+            .update({ target_user_id: user.id } as any)
+            .eq("id", conn.id);
+        }
+        loadData();
+      }
+    };
+    matchEmail();
+  }, [user, loadData]);
 
   const handleDelete = async (id: string) => {
-    try {
-      await supabase.from("family_members").delete().eq("id", id);
-      setMembers((prev) => prev.filter((m) => m.id !== id));
-    } catch {
-      toast.error(lang === "ru" ? "Ошибка удаления" : "Delete failed");
-    }
+    await supabase.from("family_members").delete().eq("id", id);
+    setMembers(prev => prev.filter(m => m.id !== id));
   };
 
-  // Build tree structure
-  const roots = members.filter((m) => !m.parent_member_id);
-  const getChildren = (parentId: string) => members.filter((m) => m.parent_member_id === parentId);
+  const handleAccept = async (id: string) => {
+    await supabase.from("family_connections" as any).update({ status: "confirmed" } as any).eq("id", id);
+    toast.success(t.accepted);
+    loadData();
+  };
 
-  const renderMember = (member: FamilyMember, depth: number = 0) => (
-    <div key={member.id} style={{ marginLeft: depth * 24 }}>
-      <div className="flex items-center gap-3 bg-card border border-border rounded-2xl p-4 mb-2 group">
-        {depth > 0 && (
-          <div className="w-4 h-px bg-border" />
-        )}
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-          <Users size={18} className="text-primary" />
+  const handleReject = async (id: string) => {
+    await supabase.from("family_connections" as any).update({ status: "rejected" } as any).eq("id", id);
+    toast.info(t.rejected);
+    loadData();
+  };
+
+  const handleDeleteConnection = async (id: string) => {
+    await supabase.from("family_connections" as any).delete().eq("id", id);
+    loadData();
+  };
+
+  // Build tree layers
+  const roots = members.filter(m => !m.parent_member_id);
+  const getChildren = (parentId: string) => members.filter(m => m.parent_member_id === parentId);
+  const orphans = members.filter(m => m.parent_member_id && !members.find(p => p.id === m.parent_member_id));
+
+  const pendingIncoming = incoming.filter(c => c.status === "pending");
+  const confirmedConnections = [...connections, ...incoming].filter(c => c.status === "confirmed");
+  const pendingSent = connections.filter(c => c.status === "pending");
+
+  // Recursive tree renderer as visual grid
+  const renderTreeLevel = (parentMembers: FamilyMember[], depth: number = 0) => {
+    if (parentMembers.length === 0) return null;
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
+          {parentMembers.map(member => (
+            <div key={member.id} className="flex flex-col items-center">
+              <FamilyTreeNode
+                name={member.name}
+                relationship={member.relationship}
+                birthYear={member.birth_year}
+                deathYear={member.death_year}
+                notes={member.notes}
+                isCenter={member.relationship === "Я" || member.relationship === "Me"}
+                onDelete={() => handleDelete(member.id)}
+              />
+              {getChildren(member.id).length > 0 && (
+                <>
+                  <div className="w-px h-6 bg-border" />
+                  <div className="relative">
+                    {getChildren(member.id).length > 1 && (
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 h-px bg-border"
+                        style={{ width: `${Math.min(getChildren(member.id).length * 160, 400)}px` }} />
+                    )}
+                    {renderTreeLevel(getChildren(member.id), depth + 1)}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-foreground truncate">{member.name}</p>
-          <p className="text-xs text-muted-foreground">
-            {member.relationship}
-            {member.birth_year && ` · ${member.birth_year}`}
-            {member.death_year && ` – ${member.death_year}`}
-          </p>
-          {member.notes && (
-            <p className="text-xs text-muted-foreground mt-1 italic">{member.notes}</p>
-          )}
-        </div>
-        <button
-          onClick={() => handleDelete(member.id)}
-          className="p-2 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Trash2 size={16} />
-        </button>
       </div>
-      {getChildren(member.id).map((child) => renderMember(child, depth + 1))}
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -158,122 +184,148 @@ const FamilyTreePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="flex items-center gap-3 px-6 pt-14 pb-6">
+      <header className="flex items-center gap-3 px-4 pt-14 pb-4">
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display flex-1">{t.title}</h1>
-        <button
-          onClick={() => setShowForm(true)}
+        <button onClick={() => setShowInvite(true)}
+          className="p-2 rounded-full bg-accent text-accent-foreground hover:bg-accent/80 transition-colors mr-1"
+          title={t.invite}>
+          <Link2 size={18} />
+        </button>
+        <button onClick={() => setShowForm(true)}
           className="p-2 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-        >
+          title={t.addMember}>
           <Plus size={20} />
         </button>
       </header>
 
-      <main className="flex-1 px-6 pb-28 max-w-md mx-auto w-full">
-        {/* Add form */}
-        {showForm && (
-          <div className="bg-card border border-border rounded-2xl p-5 mb-6 space-y-4 animate-fade-in">
-            <div className="flex items-center gap-2 mb-2">
-              <GitBranch size={18} className="text-primary" />
-              <h3 className="text-sm font-semibold text-foreground">{t.add}</h3>
-            </div>
-
-            <input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              placeholder={t.name}
-              maxLength={100}
-              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+      <main className="flex-1 px-4 pb-28 overflow-x-auto">
+        <div className="max-w-2xl mx-auto w-full">
+          {/* Add form */}
+          {showForm && (
+            <AddMemberForm
+              lang={lang}
+              userId={user!.id}
+              members={members}
+              relationships={RELATIONSHIPS[lang]}
+              onClose={() => setShowForm(false)}
+              onAdded={loadData}
             />
+          )}
 
-            <select
-              value={form.relationship}
-              onChange={(e) => setForm((f) => ({ ...f, relationship: e.target.value }))}
-              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option value="">{t.relationship}</option>
-              {RELATIONSHIPS[lang].map((r) => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-
-            <div className="flex gap-3">
-              <input
-                type="number"
-                value={form.birth_year}
-                onChange={(e) => setForm((f) => ({ ...f, birth_year: e.target.value }))}
-                placeholder={t.birthYear}
-                className="flex-1 bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-              <input
-                type="number"
-                value={form.death_year}
-                onChange={(e) => setForm((f) => ({ ...f, death_year: e.target.value }))}
-                placeholder={t.deathYear}
-                className="flex-1 bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-
-            {members.length > 0 && (
-              <select
-                value={form.parent_member_id}
-                onChange={(e) => setForm((f) => ({ ...f, parent_member_id: e.target.value }))}
-                className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">{t.none}</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>{m.name} ({m.relationship})</option>
+          {/* Incoming requests */}
+          {pendingIncoming.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                <UserPlus size={14} /> {t.pendingIn}
+              </h3>
+              <div className="flex flex-wrap gap-3">
+                {pendingIncoming.map(conn => (
+                  <div key={conn.id} className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 min-w-[200px]">
+                    <p className="text-xs text-foreground font-medium">{conn.target_email}</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {t.wantsConnect} <span className="font-semibold">{conn.relationship}</span>
+                    </p>
+                    <div className="flex gap-2 mt-3">
+                      <button onClick={() => handleAccept(conn.id)}
+                        className="flex-1 text-[11px] py-1.5 rounded-lg bg-green-500/10 text-green-600 font-medium hover:bg-green-500/20">
+                        ✓
+                      </button>
+                      <button onClick={() => handleReject(conn.id)}
+                        className="flex-1 text-[11px] py-1.5 rounded-lg bg-destructive/10 text-destructive font-medium hover:bg-destructive/20">
+                        ✕
+                      </button>
+                    </div>
+                  </div>
                 ))}
-              </select>
-            )}
-
-            <textarea
-              value={form.notes}
-              onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-              placeholder={t.notes}
-              rows={2}
-              maxLength={500}
-              className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-            />
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowForm(false)}
-                className="flex-1 bg-muted text-muted-foreground rounded-xl py-3 text-sm font-medium"
-              >
-                {t.cancel}
-              </button>
-              <button
-                onClick={handleAdd}
-                disabled={saving || !form.name.trim() || !form.relationship}
-                className="flex-1 bg-primary text-primary-foreground rounded-xl py-3 text-sm font-medium disabled:opacity-40"
-              >
-                {saving ? <Loader2 size={16} className="animate-spin mx-auto" /> : t.save}
-              </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Tree */}
-        {members.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-              <GitBranch size={28} className="text-primary" />
+          {/* Visual Tree */}
+          {members.length === 0 && confirmedConnections.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <UserPlus size={32} className="text-primary" />
+              </div>
+              <p className="text-muted-foreground text-sm mb-2">{t.empty}</p>
+              <div className="flex gap-3 mt-4">
+                <button onClick={() => setShowForm(true)}
+                  className="flex items-center gap-2 bg-primary text-primary-foreground rounded-xl px-4 py-2.5 text-sm font-medium">
+                  <Plus size={16} /> {t.addMember}
+                </button>
+                <button onClick={() => setShowInvite(true)}
+                  className="flex items-center gap-2 bg-accent text-accent-foreground rounded-xl px-4 py-2.5 text-sm font-medium">
+                  <Link2 size={16} /> {t.invite}
+                </button>
+              </div>
             </div>
-            <p className="text-muted-foreground text-sm">{t.empty}</p>
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {roots.map((m) => renderMember(m))}
-            {/* Orphans (parent deleted) */}
-            {members
-              .filter((m) => m.parent_member_id && !members.find((p) => p.id === m.parent_member_id))
-              .map((m) => renderMember(m))}
-          </div>
-        )}
+          ) : (
+            <div className="py-4">
+              {/* Main tree */}
+              {roots.length > 0 && renderTreeLevel(roots)}
+
+              {/* Orphans */}
+              {orphans.length > 0 && (
+                <div className="mt-6">
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {orphans.map(m => (
+                      <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
+                        birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
+                        onDelete={() => handleDelete(m.id)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Confirmed connections */}
+              {confirmedConnections.length > 0 && (
+                <div className="mt-8 border-t border-border pt-6">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <Link2 size={14} /> {t.confirmed}
+                  </h3>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {confirmedConnections.map(conn => (
+                      <FamilyTreeNode key={conn.id} name={conn.target_email}
+                        relationship={conn.relationship} status="confirmed"
+                        onDelete={() => handleDeleteConnection(conn.id)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Sent pending */}
+              {pendingSent.length > 0 && (
+                <div className="mt-8 border-t border-border pt-6">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <UserPlus size={14} /> {t.pendingSent}
+                  </h3>
+                  <div className="flex flex-wrap justify-center gap-4">
+                    {pendingSent.map(conn => (
+                      <FamilyTreeNode key={conn.id} name={conn.target_email}
+                        relationship={conn.relationship} status="pending"
+                        onDelete={() => handleDeleteConnection(conn.id)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* Invite modal */}
+      {showInvite && (
+        <InviteFamilyModal
+          lang={lang}
+          userId={user!.id}
+          relationships={RELATIONSHIPS[lang]}
+          onClose={() => setShowInvite(false)}
+          onSent={loadData}
+        />
+      )}
 
       <BottomNav />
     </div>
