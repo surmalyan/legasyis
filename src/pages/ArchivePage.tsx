@@ -108,6 +108,16 @@ const ArchivePage = () => {
           <div className="flex items-center justify-center h-64">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : filtered.length === 0 && search ? (
+          <div className="flex flex-col items-center justify-center h-48 text-center animate-fade-in">
+            <Search size={32} className="text-muted-foreground mb-3" />
+            <p className="text-base font-medium text-foreground mb-1">
+              {lang === "ru" ? "Ничего не найдено" : "No results found"}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {lang === "ru" ? `По запросу «${search}»` : `For "${search}"`}
+            </p>
+          </div>
         ) : entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 text-center animate-fade-in">
             <div className="w-20 h-20 rounded-full bg-accent/50 flex items-center justify-center mb-5">
