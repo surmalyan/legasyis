@@ -4,9 +4,10 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { chapterLabels, chapterOrder } from "@/lib/questions";
-import { ChevronLeft, Download, Loader2, BookOpen, Sparkles } from "lucide-react";
+import { ChevronLeft, Download, Loader2, BookOpen, Sparkles, Palette } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import { bookThemes, generateBookStyles, type BookTheme } from "@/lib/book-themes";
 
 const ExportPage = () => {
   const { lang } = useI18n();
@@ -14,6 +15,7 @@ const ExportPage = () => {
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState<BookTheme>("classic");
 
   const t = {
     title: lang === "ru" ? "Книга жизни" : "Life Book",
@@ -161,253 +163,15 @@ const ExportPage = () => {
         )
         .join("");
 
+      const themeConfig = bookThemes[selectedTheme];
+      const styles = generateBookStyles(themeConfig);
+
       const html = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
   <meta charset="utf-8">
   <title>MYLEGACY — ${authorName}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600&display=swap');
-    
-    @page { size: A4; margin: 0; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
-      color: #2d2520;
-      background: #fff;
-      font-size: 13px;
-      line-height: 1.8;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    /* ── COVER PAGE ── */
-    .cover {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(160deg, #f7f3ee 0%, #e8ddd0 40%, #c4a882 100%);
-      text-align: center;
-      page-break-after: always;
-      position: relative;
-      overflow: hidden;
-    }
-    .cover::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.4) 0%, transparent 60%),
-                  radial-gradient(ellipse at 70% 80%, rgba(180,150,110,0.3) 0%, transparent 50%);
-    }
-    .cover-content { position: relative; z-index: 1; padding: 40px; }
-    .cover-ornament {
-      width: 80px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #8b7355, transparent);
-      margin: 0 auto 32px;
-    }
-    .cover-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 16px;
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      color: #8b7355;
-      margin-bottom: 48px;
-    }
-    .cover-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 52px;
-      font-weight: 300;
-      color: #2d2520;
-      line-height: 1.2;
-      margin-bottom: 12px;
-    }
-    .cover-subtitle {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-weight: 400;
-      font-style: italic;
-      color: #6b5d4f;
-      margin-bottom: 48px;
-    }
-    .cover-author {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 28px;
-      font-weight: 500;
-      color: #3d3530;
-      letter-spacing: 2px;
-    }
-    .cover-year {
-      font-size: 14px;
-      color: #8b7d6b;
-      margin-top: 40px;
-      letter-spacing: 3px;
-    }
-    .cover-ornament-bottom {
-      width: 120px;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, #8b7355, transparent);
-      margin: 24px auto 0;
-    }
-
-    /* ── TOC PAGE ── */
-    .toc-page {
-      padding: 80px 60px;
-      page-break-after: always;
-      min-height: 100vh;
-    }
-    .toc-heading {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 32px;
-      font-weight: 600;
-      color: #2d2520;
-      text-align: center;
-      margin-bottom: 48px;
-    }
-    .toc-heading::after {
-      content: '';
-      display: block;
-      width: 60px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #c4a882, transparent);
-      margin: 16px auto 0;
-    }
-    .toc-item {
-      display: flex;
-      align-items: baseline;
-      padding: 12px 0;
-      border-bottom: 1px dotted #e5ddd0;
-    }
-    .toc-chapter {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 14px;
-      color: #8b7d6b;
-      width: 80px;
-      flex-shrink: 0;
-    }
-    .toc-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 20px;
-      font-weight: 500;
-      color: #2d2520;
-    }
-
-    /* ── ABOUT AUTHOR PAGE ── */
-    .author-page {
-      padding: 80px 60px;
-      page-break-after: always;
-      min-height: 100vh;
-    }
-    .author-heading {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 28px;
-      font-weight: 600;
-      color: #2d2520;
-      text-align: center;
-      margin-bottom: 40px;
-    }
-    .author-heading::after {
-      content: '';
-      display: block;
-      width: 60px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #c4a882, transparent);
-      margin: 16px auto 0;
-    }
-    .profile-field {
-      display: flex;
-      padding: 14px 0;
-      border-bottom: 1px solid #f0ebe4;
-    }
-    .profile-field .label {
-      font-weight: 600;
-      color: #6b5d4f;
-      width: 180px;
-      flex-shrink: 0;
-      font-size: 13px;
-    }
-    .profile-field .value {
-      color: #3d3530;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    /* ── CHAPTER PAGES ── */
-    .chapter-page {
-      padding: 60px;
-      page-break-before: always;
-    }
-    .chapter-header {
-      text-align: center;
-      margin-bottom: 40px;
-      padding-top: 40px;
-    }
-    .chapter-num {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 14px;
-      letter-spacing: 4px;
-      text-transform: uppercase;
-      color: #b4966e;
-    }
-    .chapter-title {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 36px;
-      font-weight: 600;
-      color: #2d2520;
-      margin-top: 8px;
-      line-height: 1.3;
-    }
-    .chapter-divider {
-      width: 60px;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #c4a882, transparent);
-      margin: 20px auto 0;
-    }
-    .chapter-text {
-      font-size: 14px;
-      line-height: 1.9;
-      color: #3d3530;
-      text-align: justify;
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    .chapter-text br + br { content: ''; display: block; margin-top: 16px; }
-
-    /* ── BACK COVER ── */
-    .back-cover {
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(160deg, #f7f3ee 0%, #e8ddd0 100%);
-      text-align: center;
-      page-break-before: always;
-    }
-    .back-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 24px;
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      color: #8b7355;
-      margin-bottom: 16px;
-    }
-    .back-tagline {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 16px;
-      font-style: italic;
-      color: #8b7d6b;
-    }
-
-    @media print {
-      body { margin: 0; }
-      .cover, .back-cover { height: 100vh; }
-      .chapter-page { break-inside: avoid-page; }
-    }
-  </style>
+  <style>${styles}</style>
 </head>
 <body>
 
@@ -507,6 +271,41 @@ const ExportPage = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Theme selector */}
+        <div className="w-full mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Palette size={16} className="text-primary" />
+            <span className="text-sm font-medium text-foreground">
+              {lang === "ru" ? "Стиль книги" : "Book Style"}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.keys(bookThemes) as BookTheme[]).map((themeId) => {
+              const th = bookThemes[themeId];
+              const isSelected = selectedTheme === themeId;
+              return (
+                <button
+                  key={themeId}
+                  onClick={() => setSelectedTheme(themeId)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/30"
+                  }`}
+                >
+                  <span className="text-2xl">{th.emoji}</span>
+                  <span className="text-xs font-semibold text-foreground">
+                    {lang === "ru" ? th.nameRu : th.nameEn}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground text-center leading-tight">
+                    {lang === "ru" ? th.descRu : th.descEn}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <button
