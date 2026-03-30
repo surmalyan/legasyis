@@ -9,6 +9,7 @@ import BottomNav from "@/components/BottomNav";
 import FamilyTreeNode from "@/components/family-tree/FamilyTreeNode";
 import AddMemberForm from "@/components/family-tree/AddMemberForm";
 import InviteFamilyModal from "@/components/family-tree/InviteFamilyModal";
+import ZoomPanCanvas from "@/components/family-tree/ZoomPanCanvas";
 
 interface FamilyMember {
   id: string;
@@ -201,7 +202,7 @@ const FamilyTreePage = () => {
         </button>
       </header>
 
-      <main className="flex-1 px-4 pb-28 overflow-x-auto">
+      <main className="flex-1 flex flex-col px-4 pb-28">
         <div className="max-w-2xl mx-auto w-full">
           {/* Add form */}
           {showForm && (
@@ -263,55 +264,57 @@ const FamilyTreePage = () => {
               </div>
             </div>
           ) : (
-            <div className="py-4">
-              {/* Main tree */}
-              {roots.length > 0 && renderTreeLevel(roots)}
+            <ZoomPanCanvas>
+              <div className="flex flex-col items-center gap-6 min-w-max">
+                {/* Main tree */}
+                {roots.length > 0 && renderTreeLevel(roots)}
 
-              {/* Orphans */}
-              {orphans.length > 0 && (
-                <div className="mt-6">
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {orphans.map(m => (
-                      <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
-                        birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
-                        onDelete={() => handleDelete(m.id)} />
-                    ))}
+                {/* Orphans */}
+                {orphans.length > 0 && (
+                  <div className="mt-4">
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {orphans.map(m => (
+                        <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
+                          birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
+                          onDelete={() => handleDelete(m.id)} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Confirmed connections */}
-              {confirmedConnections.length > 0 && (
-                <div className="mt-8 border-t border-border pt-6">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <Link2 size={14} /> {t.confirmed}
-                  </h3>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {confirmedConnections.map(conn => (
-                      <FamilyTreeNode key={conn.id} name={conn.target_email}
-                        relationship={conn.relationship} status="confirmed"
-                        onDelete={() => handleDeleteConnection(conn.id)} />
-                    ))}
+                {/* Confirmed connections */}
+                {confirmedConnections.length > 0 && (
+                  <div className="mt-4 border-t border-border pt-6">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Link2 size={14} /> {t.confirmed}
+                    </h3>
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {confirmedConnections.map(conn => (
+                        <FamilyTreeNode key={conn.id} name={conn.target_email}
+                          relationship={conn.relationship} status="confirmed"
+                          onDelete={() => handleDeleteConnection(conn.id)} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Sent pending */}
-              {pendingSent.length > 0 && (
-                <div className="mt-8 border-t border-border pt-6">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <UserPlus size={14} /> {t.pendingSent}
-                  </h3>
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {pendingSent.map(conn => (
-                      <FamilyTreeNode key={conn.id} name={conn.target_email}
-                        relationship={conn.relationship} status="pending"
-                        onDelete={() => handleDeleteConnection(conn.id)} />
-                    ))}
+                {/* Sent pending */}
+                {pendingSent.length > 0 && (
+                  <div className="mt-4 border-t border-border pt-6">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <UserPlus size={14} /> {t.pendingSent}
+                    </h3>
+                    <div className="flex flex-wrap justify-center gap-4">
+                      {pendingSent.map(conn => (
+                        <FamilyTreeNode key={conn.id} name={conn.target_email}
+                          relationship={conn.relationship} status="pending"
+                          onDelete={() => handleDeleteConnection(conn.id)} />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </ZoomPanCanvas>
           )}
         </div>
       </main>
