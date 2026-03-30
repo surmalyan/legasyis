@@ -57,7 +57,7 @@ const HomePage = () => {
         <img
           src={logo}
           alt="Legacy"
-          className="h-16 w-16 object-contain rounded-full logo-breathe"
+          className="h-20 w-20 object-contain logo-entrance"
         />
         <button onClick={() => navigate("/settings")} className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <Settings size={22} />
