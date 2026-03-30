@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 
-const FREE_LIMIT = 3;
+const FREE_ENTRY_LIMIT = 7;
+const TRIAL_DAYS = 7;
 
 interface SubscriptionState {
   loading: boolean;
@@ -10,6 +11,8 @@ interface SubscriptionState {
   entryCount: number;
   canCreate: boolean;
   remaining: number;
+  trialDaysLeft: number;
+  isTrial: boolean;
 }
 
 export function useSubscription(): SubscriptionState {
@@ -18,6 +21,7 @@ export function useSubscription(): SubscriptionState {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [entryCount, setEntryCount] = useState(0);
+  const [trialDaysLeft, setTrialDaysLeft] = useState(0);
 
   useEffect(() => {
     if (!user) {
@@ -48,16 +52,26 @@ export function useSubscription(): SubscriptionState {
       setIsAdmin(admin);
       setIsSubscribed(subRes.data?.active === true || admin);
       setEntryCount(countRes.count ?? 0);
+
+      // Calculate trial days from account creation
+      const createdAt = new Date(user.created_at);
+      const now = new Date();
+      const daysSinceCreation = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      const daysLeft = Math.max(0, TRIAL_DAYS - daysSinceCreation);
+      setTrialDaysLeft(daysLeft);
+
       setLoading(false);
     };
 
     load();
   }, [user]);
 
-  const canCreate = isSubscribed || isAdmin || entryCount < FREE_LIMIT;
-  const remaining = isAdmin ? Infinity : Math.max(0, FREE_LIMIT - entryCount);
+  const isTrial = !isSubscribed && !isAdmin && trialDaysLeft > 0;
+  const withinEntryLimit = entryCount < FREE_ENTRY_LIMIT;
+  const canCreate = isSubscribed || isAdmin || (isTrial && withinEntryLimit) || (!isTrial && withinEntryLimit);
+  const remaining = isAdmin ? Infinity : Math.max(0, FREE_ENTRY_LIMIT - entryCount);
 
-  return { loading, isSubscribed, entryCount, canCreate, remaining };
+  return { loading, isSubscribed, entryCount, canCreate, remaining, trialDaysLeft, isTrial };
 }
 
 export async function activateStubSubscription(): Promise<void> {
@@ -68,5 +82,5 @@ export async function activateStubSubscription(): Promise<void> {
     .from("user_subscriptions")
     .insert({ user_id: user.id, active: true });
 
-  if (error && error.code !== "23505") throw error; // ignore duplicate
+  if (error && error.code !== "23505") throw error;
 }
