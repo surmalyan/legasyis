@@ -85,7 +85,7 @@ const ResetPasswordPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
       <div className="logo-breathe mb-6">
-        <img src={logo} alt="MYLEGACY" className="w-24 h-24 object-contain rounded-full" />
+        <img src={logo} alt="Legacy" className="w-24 h-24 object-contain rounded-full" />
       </div>
       <h1 className="text-xl font-semibold text-foreground font-serif-display mb-6">{t.title}</h1>
 
