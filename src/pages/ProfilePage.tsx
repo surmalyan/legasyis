@@ -132,7 +132,7 @@ const ProfilePage = () => {
           hobbies: data.hobbies || "", life_motto: data.life_motto || "",
           biggest_dream: data.biggest_dream || "", advice_to_descendants: data.advice_to_descendants || "",
           grateful_for: data.grateful_for || "", would_change: data.would_change || "",
-          completion_step: data.completion_step || 0,
+          completion_step: data.completion_step || 0, is_public: (data as any).is_public || false,
         });
         setHasProfile(true);
         // If profile is complete, show view mode
