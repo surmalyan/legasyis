@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // Re-export questions, chapters, labels from dedicated module
-export { questionPool, chapterLabels, chapterOrder, getTodayQuestion, getRandomQuestion } from "./questions";
-export type { MappedQuestion } from "./questions";
+export { questionPool, chapterLabels, chapterOrder, getTodayQuestion, getRandomQuestion, depthLabels, depthDescriptions } from "./questions";
+export type { MappedQuestion, QuestionDepth } from "./questions";
 
 export interface DiaryEntry {
   id: string;
