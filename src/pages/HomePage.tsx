@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import logo from "@/assets/logo.png";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels } from "@/lib/diary-store";
