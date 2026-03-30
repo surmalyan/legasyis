@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Check, Loader2, User, Edit3, MapPin, Briefcase, Heart, Star, MessageCircle, Sparkles, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Loader2, User, Edit3, MapPin, Briefcase, Heart, Star, MessageCircle, Sparkles, Calendar, Share2, Globe, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AvatarUpload from "@/components/AvatarUpload";
@@ -23,16 +23,17 @@ interface ProfileData {
   grateful_for: string;
   would_change: string;
   completion_step: number;
+  is_public: boolean;
 }
 
 const emptyProfile: ProfileData = {
   full_name: "", birth_date: "", city: "", avatar_url: "",
   occupation: "", family: "", hobbies: "", life_motto: "",
   biggest_dream: "", advice_to_descendants: "", grateful_for: "",
-  would_change: "", completion_step: 0,
+  would_change: "", completion_step: 0, is_public: false,
 };
 
-type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url">;
+type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url" | "is_public">;
 
 const ProfilePage = () => {
   const { lang } = useI18n();
@@ -131,7 +132,7 @@ const ProfilePage = () => {
           hobbies: data.hobbies || "", life_motto: data.life_motto || "",
           biggest_dream: data.biggest_dream || "", advice_to_descendants: data.advice_to_descendants || "",
           grateful_for: data.grateful_for || "", would_change: data.would_change || "",
-          completion_step: data.completion_step || 0,
+          completion_step: data.completion_step || 0, is_public: (data as any).is_public || false,
         });
         setHasProfile(true);
         // If profile is complete, show view mode
@@ -253,6 +254,44 @@ const ProfilePage = () => {
                 {profile.city && profile.occupation && <span>·</span>}
                 {profile.occupation && profile.occupation}
               </p>
+            )}
+          </div>
+
+          {/* Share / Public toggle */}
+          <div className="bg-card border border-border rounded-2xl p-4 mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Globe size={16} className="text-primary" />
+                <span className="text-sm font-medium text-foreground">
+                  {lang === "ru" ? "Публичный профиль" : "Public Profile"}
+                </span>
+              </div>
+              <button
+                onClick={async () => {
+                  const newVal = !profile.is_public;
+                  setProfile((prev) => ({ ...prev, is_public: newVal }));
+                  await supabase.from("profiles").update({ is_public: newVal } as any).eq("user_id", user!.id);
+                  toast.success(newVal
+                    ? (lang === "ru" ? "Профиль стал публичным" : "Profile is now public")
+                    : (lang === "ru" ? "Профиль скрыт" : "Profile is now private"));
+                }}
+                className={`relative w-11 h-6 rounded-full transition-colors ${profile.is_public ? "bg-primary" : "bg-muted"}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${profile.is_public ? "translate-x-5" : ""}`} />
+              </button>
+            </div>
+            {profile.is_public && (
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/legacy/${user!.id}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success(lang === "ru" ? "Ссылка скопирована!" : "Link copied!");
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-primary/10 text-primary rounded-xl py-2.5 text-sm font-medium hover:bg-primary/15 transition-colors"
+              >
+                <Link2 size={16} />
+                {lang === "ru" ? "Скопировать ссылку" : "Copy link"}
+              </button>
             )}
           </div>
 
