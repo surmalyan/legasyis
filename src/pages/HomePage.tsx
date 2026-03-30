@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
+import ChapterProgress from "@/components/ChapterProgress";
 import BottomNav from "@/components/BottomNav";
 
 const HomePage = () => {
