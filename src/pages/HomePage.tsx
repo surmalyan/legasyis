@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { getTodayQuestion, getRandomQuestion, chapterLabels } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
-import { PenLine, Mic, RefreshCw, Settings } from "lucide-react";
+import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import BottomNav from "@/components/BottomNav";
 
@@ -13,7 +13,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [questionData, setQuestionData] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
-  const { loading, canCreate, remaining, isSubscribed } = useSubscription();
+  const { loading, canCreate, remaining, isSubscribed, isTrial, trialDaysLeft } = useSubscription();
 
   useEffect(() => {
     scheduleNotification(lang);
@@ -43,10 +43,7 @@ const HomePage = () => {
         <div className="w-10" />
         <video
           src="/logo-anim.mp4"
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay loop muted playsInline
           className="h-16 w-16 object-contain rounded-full"
         />
         <button onClick={() => navigate("/settings")} className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
@@ -57,6 +54,30 @@ const HomePage = () => {
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
         <div className="w-full max-w-md">
           <NotificationBanner />
+
+          {/* Trial banner */}
+          {!loading && isTrial && (
+            <div className="mb-4 bg-primary/5 border border-primary/20 rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-in">
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Sparkles size={16} className="text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-foreground">
+                  {lang === "ru" ? "Пробный период" : "Free Trial"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {lang === "ru"
+                    ? `${trialDaysLeft} дн. · ${remaining} из 7 записей`
+                    : `${trialDaysLeft} days · ${remaining} of 7 entries`}
+                </p>
+              </div>
+              <button onClick={() => navigate("/paywall")}
+                className="text-[11px] font-semibold text-primary hover:underline flex-shrink-0">
+                {lang === "ru" ? "Подписка" : "Subscribe"}
+              </button>
+            </div>
+          )}
+
           <p className="text-sm text-muted-foreground font-medium text-center mb-1">
             {new Date().toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", {
               weekday: "long", day: "numeric", month: "long",
@@ -67,7 +88,6 @@ const HomePage = () => {
             {t("questionOfTheDay")}
           </p>
 
-          {/* Chapter badge */}
           <div className="flex justify-center mb-6">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium tracking-wide">
               {chapterLabel}
@@ -85,12 +105,12 @@ const HomePage = () => {
             </button>
           </div>
 
-          {!loading && !isSubscribed && (
+          {!loading && !isSubscribed && !isTrial && remaining > 0 && (
             <div className="text-center mb-4">
               <p className="text-xs text-muted-foreground">
                 {lang === "ru"
-                  ? `Осталось бесплатных записей: ${remaining} из 3`
-                  : `Free entries remaining: ${remaining} of 3`}
+                  ? `Осталось записей: ${remaining} из 7`
+                  : `Entries remaining: ${remaining} of 7`}
               </p>
             </div>
           )}
