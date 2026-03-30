@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
+import ChapterProgress from "@/components/ChapterProgress";
 import BottomNav from "@/components/BottomNav";
 
 const HomePage = () => {
@@ -131,6 +132,11 @@ const HomePage = () => {
               <Mic size={22} />
               {t("recordAudio")}
             </button>
+          </div>
+
+          {/* Chapter progress map */}
+          <div className="mt-8">
+            <ChapterProgress />
           </div>
         </div>
       </main>
