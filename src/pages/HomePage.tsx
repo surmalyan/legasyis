@@ -100,10 +100,29 @@ const HomePage = () => {
             {t("questionOfTheDay")}
           </p>
 
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium tracking-wide">
               {chapterLabel}
             </span>
+          </div>
+
+          {/* Depth selector */}
+          <div className="flex justify-center gap-2 mb-6">
+            {([1, 2, 3] as QuestionDepth[]).map((d) => (
+              <button
+                key={d}
+                onClick={() => handleDepthChange(selectedDepth === d ? undefined : d)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all ${
+                  selectedDepth === d
+                    ? d === 1 ? "bg-green-500/15 text-green-700 dark:text-green-400 ring-1 ring-green-500/30"
+                    : d === 2 ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/30"
+                    : "bg-red-500/15 text-red-700 dark:text-red-400 ring-1 ring-red-500/30"
+                    : "bg-secondary text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {d === 1 ? "🌱" : d === 2 ? "🌿" : "🌳"} {depthLabels[lang]?.[d]}
+              </button>
+            ))}
           </div>
 
           <div className={`bg-card rounded-3xl px-8 py-12 shadow-sm border border-border mb-4 transition-all duration-250 ${isSwapping ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
