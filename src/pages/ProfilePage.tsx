@@ -23,13 +23,14 @@ interface ProfileData {
   grateful_for: string;
   would_change: string;
   completion_step: number;
+  is_public: boolean;
 }
 
 const emptyProfile: ProfileData = {
   full_name: "", birth_date: "", city: "", avatar_url: "",
   occupation: "", family: "", hobbies: "", life_motto: "",
   biggest_dream: "", advice_to_descendants: "", grateful_for: "",
-  would_change: "", completion_step: 0,
+  would_change: "", completion_step: 0, is_public: false,
 };
 
 type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url">;
