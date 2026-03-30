@@ -273,6 +273,41 @@ const ExportPage = () => {
           ))}
         </div>
 
+        {/* Theme selector */}
+        <div className="w-full mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Palette size={16} className="text-primary" />
+            <span className="text-sm font-medium text-foreground">
+              {lang === "ru" ? "Стиль книги" : "Book Style"}
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(Object.keys(bookThemes) as BookTheme[]).map((themeId) => {
+              const th = bookThemes[themeId];
+              const isSelected = selectedTheme === themeId;
+              return (
+                <button
+                  key={themeId}
+                  onClick={() => setSelectedTheme(themeId)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border-2 transition-all ${
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/20"
+                      : "border-border bg-card hover:border-primary/30"
+                  }`}
+                >
+                  <span className="text-2xl">{th.emoji}</span>
+                  <span className="text-xs font-semibold text-foreground">
+                    {lang === "ru" ? th.nameRu : th.nameEn}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground text-center leading-tight">
+                    {lang === "ru" ? th.descRu : th.descEn}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <button
           onClick={handleExport}
           disabled={generating}
