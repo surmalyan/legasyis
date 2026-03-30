@@ -243,7 +243,7 @@ const LegacyPage = () => {
 
         {/* Branding */}
         <div className="mt-12 text-center">
-          <p className="text-xs text-muted-foreground">MYLEGACY</p>
+          <p className="text-xs text-muted-foreground">Legacy</p>
         </div>
       </main>
     </div>

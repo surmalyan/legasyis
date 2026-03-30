@@ -29,7 +29,7 @@ const translations = {
     shareStory: "Поделиться",
   },
   en: {
-    appName: "MYLEGACY",
+    appName: "Legacy",
     questionOfTheDay: "Question of the Day",
     writeAnswer: "Write Answer",
     recordAudio: "Record Voice",
