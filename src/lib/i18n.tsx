@@ -4,7 +4,7 @@ export type Lang = "ru" | "en";
 
 const translations = {
   ru: {
-    appName: "MYLEGACY",
+    appName: "Legacy",
     questionOfTheDay: "Вопрос дня",
     writeAnswer: "Написать ответ",
     recordAudio: "Записать голос",
