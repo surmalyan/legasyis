@@ -25,10 +25,19 @@ const HomePage = () => {
   const handleNewQuestion = useCallback(() => {
     setIsSwapping(true);
     setTimeout(() => {
-      setQuestionData(getRandomQuestion(lang, questionData.text));
+      setQuestionData(getRandomQuestion(lang, questionData.text, selectedDepth));
       setIsSwapping(false);
     }, 250);
-  }, [lang, questionData.text]);
+  }, [lang, questionData.text, selectedDepth]);
+
+  const handleDepthChange = (depth: QuestionDepth | undefined) => {
+    setSelectedDepth(depth);
+    setIsSwapping(true);
+    setTimeout(() => {
+      setQuestionData(depth ? getTodayQuestion(lang, depth) : getTodayQuestion(lang));
+      setIsSwapping(false);
+    }, 250);
+  };
 
   const handleAction = (path: string, state: any) => {
     if (!canCreate) {
