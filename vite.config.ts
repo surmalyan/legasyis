@@ -23,8 +23,8 @@ export default defineConfig(({ mode }) => ({
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
       manifest: {
-        name: "MYLEGACY",
-        short_name: "MYLEGACY",
+        name: "Legacy",
+        short_name: "Legacy",
         description: "Сохрани свою историю для будущих поколений",
         theme_color: "#2a2318",
         background_color: "#f5f0e8",

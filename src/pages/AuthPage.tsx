@@ -104,7 +104,7 @@ const AuthPage = () => {
         {/* Logo */}
         <div className="flex flex-col items-center mb-12 animate-fade-in">
           <div className="logo-breathe mb-4">
-            <img src={logo} alt="MYLEGACY" className="w-36 h-36 object-contain rounded-full" />
+            <img src={logo} alt="Legacy" className="w-36 h-36 object-contain rounded-full" />
           </div>
           <p className="text-sm text-muted-foreground mt-1 text-center max-w-[260px]">{t.subtitle}</p>
         </div>

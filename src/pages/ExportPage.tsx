@@ -170,7 +170,7 @@ const ExportPage = () => {
 <html lang="${lang}">
 <head>
   <meta charset="utf-8">
-  <title>MYLEGACY — ${authorName}</title>
+  <title>Legacy — ${authorName}</title>
   <style>${styles}</style>
 </head>
 <body>
@@ -179,7 +179,7 @@ const ExportPage = () => {
   <div class="cover">
     <div class="cover-content">
       <div class="cover-ornament"></div>
-      <div class="cover-logo">MYLEGACY</div>
+      <div class="cover-logo">Legacy</div>
       <h1 class="cover-title">${authorName}</h1>
       <p class="cover-subtitle">${t.cover}</p>
       <div class="cover-ornament-bottom"></div>
@@ -206,7 +206,7 @@ const ExportPage = () => {
 
   <!-- BACK COVER -->
   <div class="back-cover">
-    <div class="back-logo">MYLEGACY</div>
+    <div class="back-logo">Legacy</div>
     <p class="back-tagline">${lang === "ru" ? "Сохраняя истории для будущих поколений" : "Preserving stories for future generations"}</p>
   </div>
 
