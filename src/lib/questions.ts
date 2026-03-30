@@ -1460,20 +1460,43 @@ export const chapterOrder = [
   "reflections",
 ];
 
+// ── Auto-assign depth based on position within chapter ──
+function getQuestionDepth(q: MappedQuestion, index: number): QuestionDepth {
+  if (q.depth) return q.depth;
+  // Group questions by chapter, find position within chapter
+  const chapterQuestions = questionPool.filter(qq => qq.chapter === q.chapter);
+  const posInChapter = chapterQuestions.indexOf(q);
+  const third = Math.floor(chapterQuestions.length / 3);
+  if (posInChapter < third) return 1;
+  if (posInChapter < third * 2) return 2;
+  return 3;
+}
+
+// Build depth-aware pool (cached)
+let _depthPool: (MappedQuestion & { depth: QuestionDepth })[] | null = null;
+export function getDepthPool() {
+  if (!_depthPool) {
+    _depthPool = questionPool.map((q, i) => ({ ...q, depth: getQuestionDepth(q, i) }));
+  }
+  return _depthPool;
+}
+
 // ── Question selection ──
 
-export function getTodayQuestion(lang: "ru" | "en"): { text: string; chapter: string } {
+export function getTodayQuestion(lang: "ru" | "en", depth?: QuestionDepth): { text: string; chapter: string; depth: QuestionDepth } {
+  const pool = depth ? getDepthPool().filter(q => q.depth === depth) : getDepthPool();
   const dayOfYear = Math.floor(
     (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
   );
-  const q = questionPool[dayOfYear % questionPool.length];
-  return { text: q[lang], chapter: q.chapter };
+  const q = pool[dayOfYear % pool.length];
+  return { text: q[lang], chapter: q.chapter, depth: q.depth };
 }
 
-export function getRandomQuestion(lang: "ru" | "en", excludeText?: string): { text: string; chapter: string } {
-  const filtered = excludeText
-    ? questionPool.filter((q) => q[lang] !== excludeText)
-    : questionPool;
-  const q = filtered[Math.floor(Math.random() * filtered.length)];
-  return { text: q[lang], chapter: q.chapter };
+export function getRandomQuestion(lang: "ru" | "en", excludeText?: string, depth?: QuestionDepth): { text: string; chapter: string; depth: QuestionDepth } {
+  let pool = depth ? getDepthPool().filter(q => q.depth === depth) : getDepthPool();
+  if (excludeText) {
+    pool = pool.filter((q) => q[lang] !== excludeText);
+  }
+  const q = pool[Math.floor(Math.random() * pool.length)];
+  return { text: q[lang], chapter: q.chapter, depth: q.depth };
 }
