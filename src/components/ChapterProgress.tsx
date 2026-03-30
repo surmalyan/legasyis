@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { chapterOrder, chapterLabels } from "@/lib/questions";
 import { BookOpen } from "lucide-react";
 
-const QUESTIONS_PER_CHAPTER = 84;
+const QUESTIONS_PER_CHAPTER = 104;
 
 const chapterIcons: Record<string, string> = {
   childhood: "🧒", family: "👨‍👩‍👧‍👦", relationships: "❤️", career: "💼",
