@@ -133,6 +133,11 @@ const HomePage = () => {
               {t("recordAudio")}
             </button>
           </div>
+
+          {/* Chapter progress map */}
+          <div className="mt-8">
+            <ChapterProgress />
+          </div>
         </div>
       </main>
 
