@@ -135,6 +135,7 @@ export type Database = {
           grateful_for: string | null
           hobbies: string | null
           id: string
+          is_public: boolean
           life_motto: string | null
           occupation: string | null
           updated_at: string
@@ -154,6 +155,7 @@ export type Database = {
           grateful_for?: string | null
           hobbies?: string | null
           id?: string
+          is_public?: boolean
           life_motto?: string | null
           occupation?: string | null
           updated_at?: string
@@ -173,6 +175,7 @@ export type Database = {
           grateful_for?: string | null
           hobbies?: string | null
           id?: string
+          is_public?: boolean
           life_motto?: string | null
           occupation?: string | null
           updated_at?: string
