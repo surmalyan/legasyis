@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels, depthDescriptions } from "@/lib/diary-store";
+import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
