@@ -163,13 +163,15 @@ const ExportPage = () => {
         )
         .join("");
 
+      const themeConfig = bookThemes[selectedTheme];
+      const styles = generateBookStyles(themeConfig);
+
       const html = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
   <meta charset="utf-8">
   <title>MYLEGACY — ${authorName}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+  <style>${styles}</style>
     
     @page { size: A4; margin: 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
