@@ -4,9 +4,10 @@ import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { chapterLabels, chapterOrder } from "@/lib/questions";
-import { ChevronLeft, Download, Loader2, BookOpen, Sparkles } from "lucide-react";
+import { ChevronLeft, Download, Loader2, BookOpen, Sparkles, Palette } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import { bookThemes, generateBookStyles, type BookTheme } from "@/lib/book-themes";
 
 const ExportPage = () => {
   const { lang } = useI18n();
@@ -14,6 +15,7 @@ const ExportPage = () => {
   const navigate = useNavigate();
   const [generating, setGenerating] = useState(false);
   const [progress, setProgress] = useState("");
+  const [selectedTheme, setSelectedTheme] = useState<BookTheme>("classic");
 
   const t = {
     title: lang === "ru" ? "Книга жизни" : "Life Book",
