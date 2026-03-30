@@ -47,7 +47,18 @@ const ArchivePage = () => {
     return first.startsWith("#") ? first.replace(/^#+\s*/, "") : "";
   };
 
-  const grouped = entries.reduce<Record<string, DiaryEntry[]>>((acc, entry) => {
+  const filtered = useMemo(() => {
+    if (!search.trim()) return entries;
+    const q = search.toLowerCase();
+    return entries.filter(
+      (e) =>
+        e.question.toLowerCase().includes(q) ||
+        e.answer.toLowerCase().includes(q) ||
+        e.story.toLowerCase().includes(q)
+    );
+  }, [entries, search]);
+
+  const grouped = filtered.reduce<Record<string, DiaryEntry[]>>((acc, entry) => {
     const month = new Date(entry.date).toLocaleDateString(
       lang === "ru" ? "ru-RU" : "en-US",
       { month: "long", year: "numeric" }
