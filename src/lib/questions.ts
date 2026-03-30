@@ -2,11 +2,24 @@
 // Каждый вопрос привязан к главе и содержит ru/en версии.
 // Вопросы написаны так, чтобы потомки с интересом читали ответы предков.
 
+export type QuestionDepth = 1 | 2 | 3;
+
 export interface MappedQuestion {
   ru: string;
   en: string;
   chapter: string;
+  depth?: QuestionDepth; // 1=surface, 2=medium, 3=deep
 }
+
+export const depthLabels: Record<string, Record<QuestionDepth, string>> = {
+  ru: { 1: "Лёгкий", 2: "Средний", 3: "Глубокий" },
+  en: { 1: "Light", 2: "Medium", 3: "Deep" },
+};
+
+export const depthDescriptions: Record<string, Record<QuestionDepth, string>> = {
+  ru: { 1: "Простые вопросы для начала", 2: "Вопросы посерьёзнее", 3: "Глубокие размышления" },
+  en: { 1: "Easy questions to start", 2: "More thoughtful questions", 3: "Deep reflections" },
+};
 
 export const questionPool: MappedQuestion[] = [
   // ════════════════════════════════════════
