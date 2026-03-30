@@ -61,6 +61,7 @@ const App = () => (
               <Route path="/export" element={<ProtectedRoute><ExportPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/voice-library" element={<ProtectedRoute><VoiceLibraryPage /></ProtectedRoute>} />
+              <Route path="/legacy/:userId" element={<LegacyPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
