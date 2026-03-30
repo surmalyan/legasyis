@@ -18,6 +18,7 @@ import FamilyTreePage from "./pages/FamilyTreePage";
 import ExportPage from "./pages/ExportPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import VoiceLibraryPage from "./pages/VoiceLibraryPage";
+import LegacyPage from "./pages/LegacyPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
