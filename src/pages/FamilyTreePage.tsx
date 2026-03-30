@@ -74,8 +74,8 @@ const FamilyTreePage = () => {
       supabase.from("family_connections" as any).select("*").eq("target_user_id", user.id),
     ]);
     setMembers((membersRes.data as FamilyMember[]) || []);
-    setConnections((sentRes.data as FamilyConnection[]) || []);
-    setIncoming((inRes.data as FamilyConnection[]) || []);
+    setConnections((sentRes.data as unknown as FamilyConnection[]) || []);
+    setIncoming((inRes.data as unknown as FamilyConnection[]) || []);
     setLoading(false);
   }, [user]);
 
