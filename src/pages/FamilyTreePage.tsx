@@ -202,7 +202,7 @@ const FamilyTreePage = () => {
         </button>
       </header>
 
-      <main className="flex-1 px-4 pb-28 overflow-x-auto">
+      <main className="flex-1 flex flex-col px-4 pb-28">
         <div className="max-w-2xl mx-auto w-full">
           {/* Add form */}
           {showForm && (
