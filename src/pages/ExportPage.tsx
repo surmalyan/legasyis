@@ -170,7 +170,7 @@ const ExportPage = () => {
 <html lang="${lang}">
 <head>
   <meta charset="utf-8">
-  <title>MYLEGACY — ${authorName}</title>
+  <title>Legacy — ${authorName}</title>
   <style>${styles}</style>
 </head>
 <body>
