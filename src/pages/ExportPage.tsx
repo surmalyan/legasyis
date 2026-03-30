@@ -206,7 +206,7 @@ const ExportPage = () => {
 
   <!-- BACK COVER -->
   <div class="back-cover">
-    <div class="back-logo">MYLEGACY</div>
+    <div class="back-logo">Legacy</div>
     <p class="back-tagline">${lang === "ru" ? "Сохраняя истории для будущих поколений" : "Preserving stories for future generations"}</p>
   </div>
 

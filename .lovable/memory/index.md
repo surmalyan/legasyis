@@ -1,4 +1,4 @@
-Brand: MYLEGACY — organic/hand-drawn ink aesthetic with infinity-plant logo
+Brand: Legacy — organic/hand-drawn ink aesthetic with infinity-plant logo
 - Logo: src/assets/logo.png (round, white bg, infinity+plant+roots)
 - Display font: Cormorant Garamond (serif), utility class: font-serif-display
 - Body font: Inter
