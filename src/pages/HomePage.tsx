@@ -1,17 +1,19 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import { getTodayQuestion, getRandomQuestion, chapterLabels } from "@/lib/diary-store";
+import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
 import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import ChapterProgress from "@/components/ChapterProgress";
 import BottomNav from "@/components/BottomNav";
+import type { QuestionDepth } from "@/lib/questions";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const [selectedDepth, setSelectedDepth] = useState<QuestionDepth | undefined>(undefined);
   const [questionData, setQuestionData] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed, isTrial, trialDaysLeft } = useSubscription();
@@ -23,10 +25,19 @@ const HomePage = () => {
   const handleNewQuestion = useCallback(() => {
     setIsSwapping(true);
     setTimeout(() => {
-      setQuestionData(getRandomQuestion(lang, questionData.text));
+      setQuestionData(getRandomQuestion(lang, questionData.text, selectedDepth));
       setIsSwapping(false);
     }, 250);
-  }, [lang, questionData.text]);
+  }, [lang, questionData.text, selectedDepth]);
+
+  const handleDepthChange = (depth: QuestionDepth | undefined) => {
+    setSelectedDepth(depth);
+    setIsSwapping(true);
+    setTimeout(() => {
+      setQuestionData(depth ? getTodayQuestion(lang, depth) : getTodayQuestion(lang));
+      setIsSwapping(false);
+    }, 250);
+  };
 
   const handleAction = (path: string, state: any) => {
     if (!canCreate) {
@@ -89,10 +100,29 @@ const HomePage = () => {
             {t("questionOfTheDay")}
           </p>
 
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium tracking-wide">
               {chapterLabel}
             </span>
+          </div>
+
+          {/* Depth selector */}
+          <div className="flex justify-center gap-2 mb-6">
+            {([1, 2, 3] as QuestionDepth[]).map((d) => (
+              <button
+                key={d}
+                onClick={() => handleDepthChange(selectedDepth === d ? undefined : d)}
+                className={`px-3 py-1.5 rounded-xl text-[11px] font-medium transition-all ${
+                  selectedDepth === d
+                    ? d === 1 ? "bg-green-500/15 text-green-700 dark:text-green-400 ring-1 ring-green-500/30"
+                    : d === 2 ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 ring-1 ring-amber-500/30"
+                    : "bg-red-500/15 text-red-700 dark:text-red-400 ring-1 ring-red-500/30"
+                    : "bg-secondary text-muted-foreground hover:bg-accent"
+                }`}
+              >
+                {d === 1 ? "🌱" : d === 2 ? "🌿" : "🌳"} {depthLabels[lang]?.[d]}
+              </button>
+            ))}
           </div>
 
           <div className={`bg-card rounded-3xl px-8 py-12 shadow-sm border border-border mb-4 transition-all duration-250 ${isSwapping ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
