@@ -34,6 +34,7 @@ const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded 
     notes: lang === "ru" ? "Заметки" : "Notes",
     save: lang === "ru" ? "Сохранить" : "Save",
     cancel: lang === "ru" ? "Отмена" : "Cancel",
+    genetic: lang === "ru" ? "Генетические заболевания" : "Genetic Conditions",
   };
 
   const handleAdd = async () => {
