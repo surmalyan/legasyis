@@ -237,6 +237,7 @@ const FamilyTreePage = () => {
                 birthYear={member.birth_year}
                 deathYear={member.death_year}
                 notes={member.notes}
+                geneticConditions={(member as any).genetic_conditions}
                 isCenter={member.relationship === "Я" || member.relationship === "Me"}
                 onDelete={() => handleDelete(member.id)}
               />
