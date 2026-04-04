@@ -14,6 +14,7 @@ interface ProfileData {
   birth_date: string;
   city: string;
   avatar_url: string;
+  username: string;
   occupation: string;
   family: string;
   hobbies: string;
@@ -27,13 +28,13 @@ interface ProfileData {
 }
 
 const emptyProfile: ProfileData = {
-  full_name: "", birth_date: "", city: "", avatar_url: "",
+  full_name: "", birth_date: "", city: "", avatar_url: "", username: "",
   occupation: "", family: "", hobbies: "", life_motto: "",
   biggest_dream: "", advice_to_descendants: "", grateful_for: "",
   would_change: "", completion_step: 0, is_public: false,
 };
 
-type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url" | "is_public">;
+type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url" | "is_public" | "username">;
 
 const ProfilePage = () => {
   const { lang } = useI18n();
@@ -128,6 +129,7 @@ const ProfilePage = () => {
         setProfile({
           full_name: data.full_name || "", birth_date: data.birth_date || "",
           city: data.city || "", avatar_url: data.avatar_url || "",
+          username: (data as any).username || "",
           occupation: data.occupation || "", family: data.family || "",
           hobbies: data.hobbies || "", life_motto: data.life_motto || "",
           biggest_dream: data.biggest_dream || "", advice_to_descendants: data.advice_to_descendants || "",
@@ -248,11 +250,39 @@ const ProfilePage = () => {
             <h2 className="text-xl font-bold text-foreground mt-3 font-serif-display">
               {profile.full_name || (lang === "ru" ? "Ваше имя" : "Your Name")}
             </h2>
+            {profile.username && (
+              <p className="text-xs text-primary font-medium mt-0.5">@{profile.username}</p>
+            )}
+            {!profile.username && (
+              <button
+                onClick={() => {
+                  const un = prompt(lang === "ru" ? "Введите логин (латиницей, без пробелов):" : "Enter username (latin, no spaces):");
+                  if (un && /^[a-zA-Z0-9_]{3,30}$/.test(un.trim())) {
+                    const val = un.trim().toLowerCase();
+                    handleChange("username", val);
+                    supabase.from("profiles").update({ username: val } as any).eq("user_id", user!.id)
+                      .then(({ error }) => {
+                        if (error) {
+                          toast.error(lang === "ru" ? "Логин занят" : "Username taken");
+                          handleChange("username", "");
+                        } else {
+                          toast.success(lang === "ru" ? "Логин установлен!" : "Username set!");
+                        }
+                      });
+                  } else if (un) {
+                    toast.error(lang === "ru" ? "3-30 символов, латиница и _" : "3-30 chars, latin letters and _");
+                  }
+                }}
+                className="text-xs text-primary/70 hover:text-primary mt-0.5 underline"
+              >
+                {lang === "ru" ? "Установить логин" : "Set username"}
+              </button>
+            )}
             {(profile.city || profile.occupation) && (
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
                 {profile.city && <><MapPin size={12} /> {profile.city}</>}
                 {profile.city && profile.occupation && <span>·</span>}
-                {profile.occupation && profile.occupation}
+                {profile.occupation && <span>{profile.occupation}</span>}
               </p>
             )}
           </div>

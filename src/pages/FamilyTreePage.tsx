@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, Plus, Loader2, UserPlus, Link2 } from "lucide-react";
+import { ChevronLeft, Plus, Loader2, UserPlus, Link2, Search } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import FamilyTreeNode from "@/components/family-tree/FamilyTreeNode";
@@ -62,6 +62,9 @@ const FamilyTreePage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string; username: string; avatar_url: string | null }>>([]);
+  const [searching, setSearching] = useState(false);
 
   const t = {
     title: lang === "ru" ? "Семейное древо" : "Family Tree",
@@ -75,6 +78,9 @@ const FamilyTreePage = () => {
     rejected: lang === "ru" ? "Связь отклонена" : "Connection rejected",
     wantsConnect: lang === "ru" ? "хочет связать аккаунты как" : "wants to link accounts as",
     linkedTree: lang === "ru" ? "Древо:" : "Tree:",
+    searchPlaceholder: lang === "ru" ? "Поиск по логину..." : "Search by username...",
+    noResults: lang === "ru" ? "Не найдено" : "No results",
+    sendRequest: lang === "ru" ? "Отправить запрос" : "Send request",
   };
 
   const loadData = useCallback(async () => {
@@ -162,6 +168,48 @@ const FamilyTreePage = () => {
 
   const handleDeleteConnection = async (id: string) => {
     await supabase.from("family_connections").delete().eq("id", id);
+    loadData();
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) { setSearchResults([]); return; }
+    setSearching(true);
+    const { data } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, avatar_url, username")
+      .ilike("username", `%${query.toLowerCase()}%`)
+      .neq("user_id", user!.id)
+      .limit(10);
+    setSearchResults((data as any[])?.map(d => ({
+      user_id: d.user_id, full_name: d.full_name || "", username: d.username || "",
+      avatar_url: d.avatar_url,
+    })) || []);
+    setSearching(false);
+  };
+
+  const handleQuickInvite = async (targetUserId: string) => {
+    // Check if connection already exists
+    const existing = [...connections, ...incoming].find(c =>
+      (c.requester_id === user!.id && c.target_user_id === targetUserId) ||
+      (c.target_user_id === user!.id && c.requester_id === targetUserId)
+    );
+    if (existing) {
+      toast.info(lang === "ru" ? "Запрос уже отправлен" : "Request already sent");
+      return;
+    }
+    // Get target email from profiles — we need it for family_connections
+    const { error } = await supabase.from("family_connections").insert({
+      requester_id: user!.id,
+      target_email: "via-username",
+      target_user_id: targetUserId,
+      relationship: lang === "ru" ? "Родственник" : "Relative",
+      status: "pending",
+    });
+    if (error) { toast.error(lang === "ru" ? "Ошибка" : "Error"); return; }
+    toast.success(lang === "ru" ? "Запрос отправлен!" : "Request sent!");
+    setSearchQuery("");
+    setSearchResults([]);
     loadData();
   };
 
@@ -288,6 +336,50 @@ const FamilyTreePage = () => {
 
       <main className="flex-1 flex flex-col px-4 pb-28">
         <div className="max-w-2xl mx-auto w-full">
+          {/* Search by username */}
+          <div className="mb-4 relative">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2.5">
+              <Search size={16} className="text-muted-foreground flex-shrink-0" />
+              <input
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
+              {searching && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
+            </div>
+            {searchResults.length > 0 && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                {searchResults.map(r => (
+                  <div key={r.user_id} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                      {r.avatar_url ? (
+                        <img src={r.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserPlus size={14} className="text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{r.full_name || r.username}</p>
+                      <p className="text-xs text-muted-foreground">@{r.username}</p>
+                    </div>
+                    <button
+                      onClick={() => handleQuickInvite(r.user_id)}
+                      className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-medium hover:bg-primary/20 transition-colors"
+                    >
+                      {t.sendRequest}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {searchQuery.length >= 2 && searchResults.length === 0 && !searching && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-border rounded-xl p-3 text-center text-xs text-muted-foreground">
+                {t.noResults}
+              </div>
+            )}
+          </div>
+
           {/* Add form */}
           {showForm && (
             <AddMemberForm

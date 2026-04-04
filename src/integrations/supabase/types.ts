@@ -140,6 +140,7 @@ export type Database = {
           occupation: string | null
           updated_at: string
           user_id: string
+          username: string | null
           would_change: string | null
         }
         Insert: {
@@ -160,6 +161,7 @@ export type Database = {
           occupation?: string | null
           updated_at?: string
           user_id: string
+          username?: string | null
           would_change?: string | null
         }
         Update: {
@@ -180,6 +182,7 @@ export type Database = {
           occupation?: string | null
           updated_at?: string
           user_id?: string
+          username?: string | null
           would_change?: string | null
         }
         Relationships: []
