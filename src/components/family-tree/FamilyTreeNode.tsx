@@ -114,6 +114,11 @@ const FamilyTreeNode = ({
           {notes}
         </p>
       )}
+      {geneticConditions && (
+        <p className="text-[9px] text-destructive/80 mt-1 text-center line-clamp-2 flex items-center justify-center gap-0.5">
+          🧬 {geneticConditions}
+        </p>
+      )}
     </div>
   );
 };

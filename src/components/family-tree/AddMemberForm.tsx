@@ -100,6 +100,13 @@ const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded 
         placeholder={t.notes} rows={2} maxLength={500}
         className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
 
+      <div className="flex items-center gap-2">
+        <span className="text-base">🧬</span>
+        <input value={form.genetic_conditions} onChange={(e) => setForm(f => ({ ...f, genetic_conditions: e.target.value }))}
+          placeholder={t.genetic} maxLength={500}
+          className="flex-1 bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+      </div>
+
       <div className="flex gap-3">
         <button onClick={onClose}
           className="flex-1 bg-muted text-muted-foreground rounded-xl py-3 text-sm font-medium">
