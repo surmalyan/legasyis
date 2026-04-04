@@ -336,8 +336,49 @@ const FamilyTreePage = () => {
 
       <main className="flex-1 flex flex-col px-4 pb-28">
         <div className="max-w-2xl mx-auto w-full">
-          {/* Add form */}
-          {showForm && (
+          {/* Search by username */}
+          <div className="mb-4 relative">
+            <div className="flex items-center gap-2 bg-card border border-border rounded-xl px-3 py-2.5">
+              <Search size={16} className="text-muted-foreground flex-shrink-0" />
+              <input
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder={t.searchPlaceholder}
+                className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              />
+              {searching && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
+            </div>
+            {searchResults.length > 0 && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-border rounded-xl shadow-lg overflow-hidden">
+                {searchResults.map(r => (
+                  <div key={r.user_id} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                      {r.avatar_url ? (
+                        <img src={r.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <UserPlus size={14} className="text-primary" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{r.full_name || r.username}</p>
+                      <p className="text-xs text-muted-foreground">@{r.username}</p>
+                    </div>
+                    <button
+                      onClick={() => handleQuickInvite(r.user_id)}
+                      className="text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-lg font-medium hover:bg-primary/20 transition-colors"
+                    >
+                      {t.sendRequest}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {searchQuery.length >= 2 && searchResults.length === 0 && !searching && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-card border border-border rounded-xl p-3 text-center text-xs text-muted-foreground">
+                {t.noResults}
+              </div>
+            )}
+          </div>
             <AddMemberForm
               lang={lang}
               userId={user!.id}
