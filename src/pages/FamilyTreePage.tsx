@@ -19,6 +19,7 @@ interface FamilyMember {
   death_year: number | null;
   parent_member_id: string | null;
   notes: string | null;
+  user_id?: string;
 }
 
 interface FamilyConnection {
@@ -28,6 +29,13 @@ interface FamilyConnection {
   target_user_id: string | null;
   relationship: string;
   status: string;
+}
+
+interface ConnectedTree {
+  userId: string;
+  email: string;
+  relationship: string;
+  members: FamilyMember[];
 }
 
 const RELATIONSHIPS = {
@@ -50,6 +58,7 @@ const FamilyTreePage = () => {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [connections, setConnections] = useState<FamilyConnection[]>([]);
   const [incoming, setIncoming] = useState<FamilyConnection[]>([]);
+  const [connectedTrees, setConnectedTrees] = useState<ConnectedTree[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -65,18 +74,45 @@ const FamilyTreePage = () => {
     accepted: lang === "ru" ? "Связь подтверждена!" : "Connection confirmed!",
     rejected: lang === "ru" ? "Связь отклонена" : "Connection rejected",
     wantsConnect: lang === "ru" ? "хочет связать аккаунты как" : "wants to link accounts as",
+    linkedTree: lang === "ru" ? "Древо:" : "Tree:",
   };
 
   const loadData = useCallback(async () => {
     if (!user) return;
     const [membersRes, sentRes, inRes] = await Promise.all([
       supabase.from("family_members").select("*").eq("user_id", user.id).order("created_at"),
-      supabase.from("family_connections" as any).select("*").eq("requester_id", user.id),
-      supabase.from("family_connections" as any).select("*").eq("target_user_id", user.id),
+      supabase.from("family_connections").select("*").eq("requester_id", user.id),
+      supabase.from("family_connections").select("*").eq("target_user_id", user.id),
     ]);
     setMembers((membersRes.data as FamilyMember[]) || []);
     setConnections((sentRes.data as unknown as FamilyConnection[]) || []);
     setIncoming((inRes.data as unknown as FamilyConnection[]) || []);
+
+    // Load connected users' family trees
+    const allConns = [...((sentRes.data as unknown as FamilyConnection[]) || []), ...((inRes.data as unknown as FamilyConnection[]) || [])];
+    const confirmed = allConns.filter(c => c.status === "confirmed");
+    const trees: ConnectedTree[] = [];
+
+    for (const conn of confirmed) {
+      const otherUserId = conn.requester_id === user.id ? conn.target_user_id : conn.requester_id;
+      if (!otherUserId || trees.some(t => t.userId === otherUserId)) continue;
+
+      const { data: otherMembers } = await supabase
+        .from("family_members")
+        .select("*")
+        .eq("user_id", otherUserId)
+        .order("created_at");
+
+      if (otherMembers && otherMembers.length > 0) {
+        trees.push({
+          userId: otherUserId,
+          email: conn.requester_id === user.id ? conn.target_email : "linked",
+          relationship: conn.relationship,
+          members: otherMembers as FamilyMember[],
+        });
+      }
+    }
+    setConnectedTrees(trees);
     setLoading(false);
   }, [user]);
 
@@ -84,21 +120,20 @@ const FamilyTreePage = () => {
     loadData();
   }, [loadData]);
 
-  // Check if current user has incoming connections by email
+  // Match incoming connections by email
   useEffect(() => {
     if (!user?.email) return;
     const matchEmail = async () => {
       const { data } = await supabase
-        .from("family_connections" as any)
+        .from("family_connections")
         .select("*")
         .eq("target_email", user.email!.toLowerCase())
         .eq("status", "pending")
         .is("target_user_id", null);
       if (data && data.length > 0) {
-        // Auto-assign target_user_id
         for (const conn of data as any[]) {
           await supabase
-            .from("family_connections" as any)
+            .from("family_connections")
             .update({ target_user_id: user.id } as any)
             .eq("id", conn.id);
         }
@@ -114,19 +149,19 @@ const FamilyTreePage = () => {
   };
 
   const handleAccept = async (id: string) => {
-    await supabase.from("family_connections" as any).update({ status: "confirmed" } as any).eq("id", id);
+    await supabase.from("family_connections").update({ status: "confirmed" }).eq("id", id);
     toast.success(t.accepted);
     loadData();
   };
 
   const handleReject = async (id: string) => {
-    await supabase.from("family_connections" as any).update({ status: "rejected" } as any).eq("id", id);
+    await supabase.from("family_connections").update({ status: "rejected" }).eq("id", id);
     toast.info(t.rejected);
     loadData();
   };
 
   const handleDeleteConnection = async (id: string) => {
-    await supabase.from("family_connections" as any).delete().eq("id", id);
+    await supabase.from("family_connections").delete().eq("id", id);
     loadData();
   };
 
@@ -172,6 +207,55 @@ const FamilyTreePage = () => {
           ))}
         </div>
       </div>
+    );
+  };
+
+  // Render a connected user's tree (read-only)
+  const renderConnectedTree = (treeMembers: FamilyMember[]) => {
+    const treeRoots = treeMembers.filter(m => !m.parent_member_id);
+    const getTreeChildren = (parentId: string) => treeMembers.filter(m => m.parent_member_id === parentId);
+    const treeOrphans = treeMembers.filter(m => m.parent_member_id && !treeMembers.find(p => p.id === m.parent_member_id));
+
+    const renderLevel = (parents: FamilyMember[]): React.ReactNode => {
+      if (parents.length === 0) return null;
+      return (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            {parents.map(member => (
+              <div key={member.id} className="flex flex-col items-center">
+                <FamilyTreeNode
+                  name={member.name}
+                  relationship={member.relationship}
+                  birthYear={member.birth_year}
+                  deathYear={member.death_year}
+                  notes={member.notes}
+                  status="confirmed"
+                />
+                {getTreeChildren(member.id).length > 0 && (
+                  <>
+                    <div className="w-px h-6 bg-border" />
+                    {renderLevel(getTreeChildren(member.id))}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <>
+        {treeRoots.length > 0 && renderLevel(treeRoots)}
+        {treeOrphans.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-4">
+            {treeOrphans.map(m => (
+              <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
+                birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes} status="confirmed" />
+            ))}
+          </div>
+        )}
+      </>
     );
   };
 
@@ -281,6 +365,18 @@ const FamilyTreePage = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Connected users' trees */}
+                {connectedTrees.map(tree => (
+                  <div key={tree.userId} className="mt-4 border-t border-border pt-6">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Link2 size={14} /> {t.linkedTree} {tree.email} ({tree.relationship})
+                    </h3>
+                    <div className="flex flex-col items-center gap-4">
+                      {renderConnectedTree(tree.members)}
+                    </div>
+                  </div>
+                ))}
 
                 {/* Confirmed connections */}
                 {confirmedConnections.length > 0 && (

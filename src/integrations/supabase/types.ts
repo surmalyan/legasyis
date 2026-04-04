@@ -255,6 +255,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_confirmed_connection: {
+        Args: { _other_user_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
