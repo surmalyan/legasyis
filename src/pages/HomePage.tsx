@@ -54,11 +54,7 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <header className="flex items-center justify-between px-6 pt-14 pb-2">
         <div className="w-10" />
-        <img
-          src={logo}
-          alt="Legacy"
-          className="h-20 w-20 object-contain logo-entrance"
-        />
+        <AnimatedLogo size={80} className="logo-entrance" />
         <button onClick={() => navigate("/settings")} className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <Settings size={22} />
         </button>
