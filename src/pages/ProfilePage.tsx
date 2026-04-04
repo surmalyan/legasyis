@@ -512,6 +512,46 @@ const ProfilePage = () => {
                 <textarea value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
                   placeholder={field.placeholder} rows={3} maxLength={1000}
                   className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none transition-shadow" />
+              ) : field.type === "select" ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {SPHERES_OPTIONS.map(opt => {
+                      const selected = (profile[field.key] as string) === opt;
+                      return (
+                        <button key={opt} type="button"
+                          onClick={() => handleChange(field.key, selected ? "" : opt)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-accent"}`}>
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input type="text" value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
+                    placeholder={field.placeholder} maxLength={200}
+                    className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
+                </div>
+              ) : field.type === "multiselect" ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {LANGUAGES_OPTIONS.map(opt => {
+                      const current = (profile[field.key] as string).split(", ").filter(Boolean);
+                      const selected = current.includes(opt);
+                      return (
+                        <button key={opt} type="button"
+                          onClick={() => {
+                            const updated = selected ? current.filter(l => l !== opt) : [...current, opt];
+                            handleChange(field.key, updated.join(", "));
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-accent"}`}>
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input type="text" value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
+                    placeholder={lang === "ru" ? "Или введите вручную" : "Or type manually"} maxLength={200}
+                    className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
+                </div>
               ) : (
                 <input type={field.type} value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
                   placeholder={field.placeholder} maxLength={200}
