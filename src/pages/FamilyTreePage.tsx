@@ -149,19 +149,19 @@ const FamilyTreePage = () => {
   };
 
   const handleAccept = async (id: string) => {
-    await supabase.from("family_connections" as any).update({ status: "confirmed" } as any).eq("id", id);
+    await supabase.from("family_connections").update({ status: "confirmed" }).eq("id", id);
     toast.success(t.accepted);
     loadData();
   };
 
   const handleReject = async (id: string) => {
-    await supabase.from("family_connections" as any).update({ status: "rejected" } as any).eq("id", id);
+    await supabase.from("family_connections").update({ status: "rejected" }).eq("id", id);
     toast.info(t.rejected);
     loadData();
   };
 
   const handleDeleteConnection = async (id: string) => {
-    await supabase.from("family_connections" as any).delete().eq("id", id);
+    await supabase.from("family_connections").delete().eq("id", id);
     loadData();
   };
 
