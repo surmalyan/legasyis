@@ -456,6 +456,7 @@ const FamilyTreePage = () => {
                       {orphans.map(m => (
                         <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
                           birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
+                          geneticConditions={(m as any).genetic_conditions}
                           onDelete={() => handleDelete(m.id)} />
                       ))}
                     </div>
