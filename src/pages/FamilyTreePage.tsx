@@ -78,6 +78,9 @@ const FamilyTreePage = () => {
     rejected: lang === "ru" ? "Связь отклонена" : "Connection rejected",
     wantsConnect: lang === "ru" ? "хочет связать аккаунты как" : "wants to link accounts as",
     linkedTree: lang === "ru" ? "Древо:" : "Tree:",
+    searchPlaceholder: lang === "ru" ? "Поиск по логину..." : "Search by username...",
+    noResults: lang === "ru" ? "Не найдено" : "No results",
+    sendRequest: lang === "ru" ? "Отправить запрос" : "Send request",
   };
 
   const loadData = useCallback(async () => {
