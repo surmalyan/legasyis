@@ -7,7 +7,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
-import logo from "@/assets/logo.png";
+import AnimatedLogo from "@/components/AnimatedLogo";
 
 const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
