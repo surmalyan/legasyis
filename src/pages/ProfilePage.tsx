@@ -86,6 +86,14 @@ const ProfilePage = () => {
     would_change: { label: lang === "ru" ? "Что бы изменили" : "Would Change", icon: Edit3 },
   };
 
+  const LANGUAGES_OPTIONS = lang === "ru"
+    ? ["Русский", "Английский", "Испанский", "Французский", "Немецкий", "Китайский", "Японский", "Арабский", "Португальский", "Итальянский", "Корейский", "Турецкий", "Хинди", "Польский", "Украинский"]
+    : ["English", "Spanish", "French", "German", "Chinese", "Japanese", "Arabic", "Portuguese", "Italian", "Korean", "Turkish", "Hindi", "Polish", "Russian", "Ukrainian"];
+
+  const SPHERES_OPTIONS = lang === "ru"
+    ? ["IT и технологии", "Медицина", "Образование", "Финансы и банки", "Юриспруденция", "Маркетинг и реклама", "Строительство", "Производство", "Торговля", "Транспорт и логистика", "Наука", "Искусство и культура", "СМИ", "Государственная служба", "Сельское хозяйство", "Спорт", "Другое"]
+    : ["IT & Technology", "Healthcare", "Education", "Finance & Banking", "Legal", "Marketing & Advertising", "Construction", "Manufacturing", "Retail & Trade", "Transport & Logistics", "Science", "Arts & Culture", "Media", "Government", "Agriculture", "Sports", "Other"];
+
   const steps = [
     {
       title: t.surface,
