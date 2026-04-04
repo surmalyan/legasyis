@@ -137,6 +137,24 @@ const PaywallPage = () => {
           ))}
         </div>
 
+        {/* Gift email input */}
+        {selected === "gift" && (
+          <div className="w-full max-w-sm mb-4 animate-fade-in">
+            <label className="text-sm font-medium text-foreground mb-1.5 block">
+              {lang === "ru" ? "Email получателя" : "Recipient's email"}
+            </label>
+            <Input
+              type="email"
+              placeholder="email@example.com"
+              value={giftEmail}
+              onChange={(e) => { setGiftEmail(e.target.value); setGiftError(""); }}
+              className={`rounded-xl ${giftError ? "border-destructive" : ""}`}
+              maxLength={255}
+            />
+            {giftError && <p className="text-xs text-destructive mt-1">{giftError}</p>}
+          </div>
+        )}
+
         <p className="text-xs text-muted-foreground mb-4">{t.stub}</p>
 
         <button onClick={handleSubscribe} disabled={loading}
