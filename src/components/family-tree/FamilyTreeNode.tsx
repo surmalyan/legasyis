@@ -22,6 +22,7 @@ const FamilyTreeNode = ({
   birthYear,
   deathYear,
   notes,
+  geneticConditions,
   avatarUrl,
   status = "local",
   isCenter = false,
