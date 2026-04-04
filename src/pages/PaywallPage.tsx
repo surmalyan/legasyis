@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
+import { Input } from "@/components/ui/input";
 import { activateStubSubscription } from "@/hooks/use-subscription";
 import { BookOpen, Crown, Check, Loader2, Infinity, Mic, Users, BookMarked, Gift } from "lucide-react";
 import { toast } from "sonner";
