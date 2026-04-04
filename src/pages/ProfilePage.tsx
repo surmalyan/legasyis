@@ -129,6 +129,7 @@ const ProfilePage = () => {
         setProfile({
           full_name: data.full_name || "", birth_date: data.birth_date || "",
           city: data.city || "", avatar_url: data.avatar_url || "",
+          username: (data as any).username || "",
           occupation: data.occupation || "", family: data.family || "",
           hobbies: data.hobbies || "", life_motto: data.life_motto || "",
           biggest_dream: data.biggest_dream || "", advice_to_descendants: data.advice_to_descendants || "",
