@@ -7,7 +7,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
-import logo from "@/assets/logo.png";
+import AnimatedLogo from "@/components/AnimatedLogo";
 
 const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -104,7 +104,7 @@ const AuthPage = () => {
         {/* Logo */}
         <div className="flex flex-col items-center mb-12">
           <div className="logo-entrance mb-4">
-            <img src={logo} alt="Legacy" className="w-40 h-40 object-contain" />
+            <AnimatedLogo size={160} />
           </div>
           <p className="text-sm text-muted-foreground mt-1 text-center max-w-[260px]">{t.subtitle}</p>
         </div>
