@@ -14,6 +14,7 @@ interface ProfileData {
   birth_date: string;
   city: string;
   avatar_url: string;
+  username: string;
   occupation: string;
   family: string;
   hobbies: string;
@@ -27,7 +28,7 @@ interface ProfileData {
 }
 
 const emptyProfile: ProfileData = {
-  full_name: "", birth_date: "", city: "", avatar_url: "",
+  full_name: "", birth_date: "", city: "", avatar_url: "", username: "",
   occupation: "", family: "", hobbies: "", life_motto: "",
   biggest_dream: "", advice_to_descendants: "", grateful_for: "",
   would_change: "", completion_step: 0, is_public: false,
