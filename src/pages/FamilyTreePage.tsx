@@ -19,6 +19,7 @@ interface FamilyMember {
   death_year: number | null;
   parent_member_id: string | null;
   notes: string | null;
+  user_id?: string;
 }
 
 interface FamilyConnection {
@@ -28,6 +29,13 @@ interface FamilyConnection {
   target_user_id: string | null;
   relationship: string;
   status: string;
+}
+
+interface ConnectedTree {
+  userId: string;
+  email: string;
+  relationship: string;
+  members: FamilyMember[];
 }
 
 const RELATIONSHIPS = {
