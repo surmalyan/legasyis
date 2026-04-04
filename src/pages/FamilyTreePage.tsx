@@ -58,6 +58,7 @@ const FamilyTreePage = () => {
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [connections, setConnections] = useState<FamilyConnection[]>([]);
   const [incoming, setIncoming] = useState<FamilyConnection[]>([]);
+  const [connectedTrees, setConnectedTrees] = useState<ConnectedTree[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -73,18 +74,45 @@ const FamilyTreePage = () => {
     accepted: lang === "ru" ? "Связь подтверждена!" : "Connection confirmed!",
     rejected: lang === "ru" ? "Связь отклонена" : "Connection rejected",
     wantsConnect: lang === "ru" ? "хочет связать аккаунты как" : "wants to link accounts as",
+    linkedTree: lang === "ru" ? "Древо:" : "Tree:",
   };
 
   const loadData = useCallback(async () => {
     if (!user) return;
     const [membersRes, sentRes, inRes] = await Promise.all([
       supabase.from("family_members").select("*").eq("user_id", user.id).order("created_at"),
-      supabase.from("family_connections" as any).select("*").eq("requester_id", user.id),
-      supabase.from("family_connections" as any).select("*").eq("target_user_id", user.id),
+      supabase.from("family_connections").select("*").eq("requester_id", user.id),
+      supabase.from("family_connections").select("*").eq("target_user_id", user.id),
     ]);
     setMembers((membersRes.data as FamilyMember[]) || []);
     setConnections((sentRes.data as unknown as FamilyConnection[]) || []);
     setIncoming((inRes.data as unknown as FamilyConnection[]) || []);
+
+    // Load connected users' family trees
+    const allConns = [...((sentRes.data as unknown as FamilyConnection[]) || []), ...((inRes.data as unknown as FamilyConnection[]) || [])];
+    const confirmed = allConns.filter(c => c.status === "confirmed");
+    const trees: ConnectedTree[] = [];
+
+    for (const conn of confirmed) {
+      const otherUserId = conn.requester_id === user.id ? conn.target_user_id : conn.requester_id;
+      if (!otherUserId || trees.some(t => t.userId === otherUserId)) continue;
+
+      const { data: otherMembers } = await supabase
+        .from("family_members")
+        .select("*")
+        .eq("user_id", otherUserId)
+        .order("created_at");
+
+      if (otherMembers && otherMembers.length > 0) {
+        trees.push({
+          userId: otherUserId,
+          email: conn.requester_id === user.id ? conn.target_email : "linked",
+          relationship: conn.relationship,
+          members: otherMembers as FamilyMember[],
+        });
+      }
+    }
+    setConnectedTrees(trees);
     setLoading(false);
   }, [user]);
 
@@ -92,21 +120,20 @@ const FamilyTreePage = () => {
     loadData();
   }, [loadData]);
 
-  // Check if current user has incoming connections by email
+  // Match incoming connections by email
   useEffect(() => {
     if (!user?.email) return;
     const matchEmail = async () => {
       const { data } = await supabase
-        .from("family_connections" as any)
+        .from("family_connections")
         .select("*")
         .eq("target_email", user.email!.toLowerCase())
         .eq("status", "pending")
         .is("target_user_id", null);
       if (data && data.length > 0) {
-        // Auto-assign target_user_id
         for (const conn of data as any[]) {
           await supabase
-            .from("family_connections" as any)
+            .from("family_connections")
             .update({ target_user_id: user.id } as any)
             .eq("id", conn.id);
         }
