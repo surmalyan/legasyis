@@ -379,6 +379,9 @@ const FamilyTreePage = () => {
               </div>
             )}
           </div>
+
+          {/* Add form */}
+          {showForm && (
             <AddMemberForm
               lang={lang}
               userId={user!.id}
