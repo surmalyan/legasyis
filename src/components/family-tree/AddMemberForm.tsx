@@ -49,6 +49,7 @@ const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded 
         death_year: form.death_year ? parseInt(form.death_year) : null,
         parent_member_id: form.parent_member_id || null,
         notes: form.notes.trim() || null,
+        genetic_conditions: form.genetic_conditions.trim() || null,
       });
       if (error) throw error;
       toast.success(lang === "ru" ? "Добавлено!" : "Added!");
