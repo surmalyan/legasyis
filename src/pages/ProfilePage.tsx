@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Check, Loader2, User, Edit3, MapPin, Briefcase, Heart, Star, MessageCircle, Sparkles, Calendar, Share2, Globe, Link2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Loader2, User, Edit3, MapPin, Briefcase, Heart, Star, MessageCircle, Sparkles, Calendar, Share2, Globe, Link2, GraduationCap, Languages, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AvatarUpload from "@/components/AvatarUpload";
