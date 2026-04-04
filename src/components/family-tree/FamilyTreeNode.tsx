@@ -6,6 +6,7 @@ interface FamilyTreeNodeProps {
   birthYear?: number | null;
   deathYear?: number | null;
   notes?: string | null;
+  geneticConditions?: string | null;
   avatarUrl?: string | null;
   status?: "local" | "pending" | "confirmed";
   isCenter?: boolean;
@@ -20,6 +21,7 @@ const FamilyTreeNode = ({
   birthYear,
   deathYear,
   notes,
+  geneticConditions,
   avatarUrl,
   status = "local",
   isCenter = false,
@@ -109,6 +111,11 @@ const FamilyTreeNode = ({
       {notes && (
         <p className="text-[9px] text-muted-foreground italic mt-1 text-center line-clamp-2">
           {notes}
+        </p>
+      )}
+      {geneticConditions && (
+        <p className="text-[9px] text-destructive/80 mt-1 text-center line-clamp-2 flex items-center justify-center gap-0.5">
+          🧬 {geneticConditions}
         </p>
       )}
     </div>

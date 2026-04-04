@@ -19,6 +19,7 @@ interface FamilyMember {
   death_year: number | null;
   parent_member_id: string | null;
   notes: string | null;
+  genetic_conditions: string | null;
   user_id?: string;
 }
 
@@ -236,6 +237,7 @@ const FamilyTreePage = () => {
                 birthYear={member.birth_year}
                 deathYear={member.death_year}
                 notes={member.notes}
+                geneticConditions={(member as any).genetic_conditions}
                 isCenter={member.relationship === "Я" || member.relationship === "Me"}
                 onDelete={() => handleDelete(member.id)}
               />
@@ -277,6 +279,7 @@ const FamilyTreePage = () => {
                   birthYear={member.birth_year}
                   deathYear={member.death_year}
                   notes={member.notes}
+                  geneticConditions={(member as any).genetic_conditions}
                   status="confirmed"
                 />
                 {getTreeChildren(member.id).length > 0 && (
@@ -299,7 +302,8 @@ const FamilyTreePage = () => {
           <div className="flex flex-wrap justify-center gap-4">
             {treeOrphans.map(m => (
               <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
-                birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes} status="confirmed" />
+                birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
+                geneticConditions={(m as any).genetic_conditions} status="confirmed" />
             ))}
           </div>
         )}
@@ -452,6 +456,7 @@ const FamilyTreePage = () => {
                       {orphans.map(m => (
                         <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
                           birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
+                          geneticConditions={(m as any).genetic_conditions}
                           onDelete={() => handleDelete(m.id)} />
                       ))}
                     </div>

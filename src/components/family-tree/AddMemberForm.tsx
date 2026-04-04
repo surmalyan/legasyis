@@ -20,7 +20,7 @@ interface Props {
 
 const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded }: Props) => {
   const [form, setForm] = useState({
-    name: "", relationship: "", birth_year: "", death_year: "", parent_member_id: "", notes: "",
+    name: "", relationship: "", birth_year: "", death_year: "", parent_member_id: "", notes: "", genetic_conditions: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -34,6 +34,7 @@ const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded 
     notes: lang === "ru" ? "Заметки" : "Notes",
     save: lang === "ru" ? "Сохранить" : "Save",
     cancel: lang === "ru" ? "Отмена" : "Cancel",
+    genetic: lang === "ru" ? "Генетические заболевания" : "Genetic Conditions",
   };
 
   const handleAdd = async () => {
@@ -48,6 +49,7 @@ const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded 
         death_year: form.death_year ? parseInt(form.death_year) : null,
         parent_member_id: form.parent_member_id || null,
         notes: form.notes.trim() || null,
+        genetic_conditions: form.genetic_conditions.trim() || null,
       });
       if (error) throw error;
       toast.success(lang === "ru" ? "Добавлено!" : "Added!");
@@ -97,6 +99,13 @@ const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded 
       <textarea value={form.notes} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
         placeholder={t.notes} rows={2} maxLength={500}
         className="w-full bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none" />
+
+      <div className="flex items-center gap-2">
+        <span className="text-base">🧬</span>
+        <input value={form.genetic_conditions} onChange={(e) => setForm(f => ({ ...f, genetic_conditions: e.target.value }))}
+          placeholder={t.genetic} maxLength={500}
+          className="flex-1 bg-background border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+      </div>
 
       <div className="flex gap-3">
         <button onClick={onClose}
