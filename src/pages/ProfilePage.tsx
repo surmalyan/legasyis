@@ -16,6 +16,9 @@ interface ProfileData {
   avatar_url: string;
   username: string;
   occupation: string;
+  languages: string;
+  education: string;
+  employment_sphere: string;
   family: string;
   hobbies: string;
   life_motto: string;
@@ -29,7 +32,8 @@ interface ProfileData {
 
 const emptyProfile: ProfileData = {
   full_name: "", birth_date: "", city: "", avatar_url: "", username: "",
-  occupation: "", family: "", hobbies: "", life_motto: "",
+  occupation: "", languages: "", education: "", employment_sphere: "",
+  family: "", hobbies: "", life_motto: "",
   biggest_dream: "", advice_to_descendants: "", grateful_for: "",
   would_change: "", completion_step: 0, is_public: false,
 };
