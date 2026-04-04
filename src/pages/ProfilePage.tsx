@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Check, Loader2, User, Edit3, MapPin, Briefcase, Heart, Star, MessageCircle, Sparkles, Calendar, Share2, Globe, Link2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Loader2, User, Edit3, MapPin, Briefcase, Heart, Star, MessageCircle, Sparkles, Calendar, Share2, Globe, Link2, GraduationCap, Languages, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AvatarUpload from "@/components/AvatarUpload";
@@ -16,6 +16,9 @@ interface ProfileData {
   avatar_url: string;
   username: string;
   occupation: string;
+  languages: string;
+  education: string;
+  employment_sphere: string;
   family: string;
   hobbies: string;
   life_motto: string;
@@ -29,7 +32,8 @@ interface ProfileData {
 
 const emptyProfile: ProfileData = {
   full_name: "", birth_date: "", city: "", avatar_url: "", username: "",
-  occupation: "", family: "", hobbies: "", life_motto: "",
+  occupation: "", languages: "", education: "", employment_sphere: "",
+  family: "", hobbies: "", life_motto: "",
   biggest_dream: "", advice_to_descendants: "", grateful_for: "",
   would_change: "", completion_step: 0, is_public: false,
 };
@@ -69,7 +73,10 @@ const ProfilePage = () => {
     full_name: { label: lang === "ru" ? "Имя" : "Name", icon: User },
     birth_date: { label: lang === "ru" ? "Дата рождения" : "Birth Date", icon: Calendar },
     city: { label: lang === "ru" ? "Город" : "City", icon: MapPin },
+    languages: { label: lang === "ru" ? "Языки" : "Languages", icon: Languages },
+    education: { label: lang === "ru" ? "Образование" : "Education", icon: GraduationCap },
     occupation: { label: lang === "ru" ? "Род деятельности" : "Occupation", icon: Briefcase },
+    employment_sphere: { label: lang === "ru" ? "Сфера занятости" : "Employment Sphere", icon: Building2 },
     family: { label: lang === "ru" ? "Семья" : "Family", icon: Heart },
     hobbies: { label: lang === "ru" ? "Увлечения" : "Hobbies", icon: Star },
     life_motto: { label: lang === "ru" ? "Жизненное кредо" : "Life Motto", icon: Sparkles },
@@ -96,6 +103,9 @@ const ProfilePage = () => {
       hasAvatar: false,
       fields: [
         { key: "occupation" as const, label: lang === "ru" ? "Род деятельности" : "Occupation", placeholder: lang === "ru" ? "Чем вы занимаетесь?" : "What do you do?", type: "text", voiceable: true },
+        { key: "employment_sphere" as const, label: lang === "ru" ? "Сфера занятости" : "Employment Sphere", placeholder: lang === "ru" ? "IT, медицина, образование..." : "IT, medicine, education...", type: "text", voiceable: false },
+        { key: "education" as const, label: lang === "ru" ? "Образование" : "Education", placeholder: lang === "ru" ? "Ваше образование" : "Your education", type: "text", voiceable: true },
+        { key: "languages" as const, label: lang === "ru" ? "Языки" : "Languages", placeholder: lang === "ru" ? "Какие языки вы знаете?" : "Which languages do you speak?", type: "text", voiceable: false },
         { key: "family" as const, label: lang === "ru" ? "Семья" : "Family", placeholder: lang === "ru" ? "Расскажите о своей семье" : "Tell about your family", type: "textarea", voiceable: true },
         { key: "hobbies" as const, label: lang === "ru" ? "Увлечения" : "Hobbies", placeholder: lang === "ru" ? "Что вас вдохновляет?" : "What inspires you?", type: "textarea", voiceable: true },
       ],
@@ -130,7 +140,11 @@ const ProfilePage = () => {
           full_name: data.full_name || "", birth_date: data.birth_date || "",
           city: data.city || "", avatar_url: data.avatar_url || "",
           username: (data as any).username || "",
-          occupation: data.occupation || "", family: data.family || "",
+          occupation: data.occupation || "",
+          languages: (data as any).languages || "",
+          education: (data as any).education || "",
+          employment_sphere: (data as any).employment_sphere || "",
+          family: data.family || "",
           hobbies: data.hobbies || "", life_motto: data.life_motto || "",
           biggest_dream: data.biggest_dream || "", advice_to_descendants: data.advice_to_descendants || "",
           grateful_for: data.grateful_for || "", would_change: data.would_change || "",
@@ -221,7 +235,7 @@ const ProfilePage = () => {
 
     const sections = [
       { title: t.surface, keys: ["full_name", "birth_date", "city"] as FieldKey[] },
-      { title: t.medium, keys: ["occupation", "family", "hobbies"] as FieldKey[] },
+      { title: t.medium, keys: ["occupation", "employment_sphere", "education", "languages", "family", "hobbies"] as FieldKey[] },
       { title: t.deep, keys: ["life_motto", "biggest_dream", "grateful_for"] as FieldKey[] },
       { title: t.deepest, keys: ["advice_to_descendants", "would_change"] as FieldKey[] },
     ];

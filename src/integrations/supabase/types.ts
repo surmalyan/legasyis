@@ -133,12 +133,15 @@ export type Database = {
           city: string | null
           completion_step: number
           created_at: string
+          education: string | null
+          employment_sphere: string | null
           family: string | null
           full_name: string | null
           grateful_for: string | null
           hobbies: string | null
           id: string
           is_public: boolean
+          languages: string | null
           life_motto: string | null
           occupation: string | null
           updated_at: string
@@ -154,12 +157,15 @@ export type Database = {
           city?: string | null
           completion_step?: number
           created_at?: string
+          education?: string | null
+          employment_sphere?: string | null
           family?: string | null
           full_name?: string | null
           grateful_for?: string | null
           hobbies?: string | null
           id?: string
           is_public?: boolean
+          languages?: string | null
           life_motto?: string | null
           occupation?: string | null
           updated_at?: string
@@ -175,12 +181,15 @@ export type Database = {
           city?: string | null
           completion_step?: number
           created_at?: string
+          education?: string | null
+          employment_sphere?: string | null
           family?: string | null
           full_name?: string | null
           grateful_for?: string | null
           hobbies?: string | null
           id?: string
           is_public?: boolean
+          languages?: string | null
           life_motto?: string | null
           occupation?: string | null
           updated_at?: string
