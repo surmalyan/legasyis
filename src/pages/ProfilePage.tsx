@@ -103,6 +103,9 @@ const ProfilePage = () => {
       hasAvatar: false,
       fields: [
         { key: "occupation" as const, label: lang === "ru" ? "Род деятельности" : "Occupation", placeholder: lang === "ru" ? "Чем вы занимаетесь?" : "What do you do?", type: "text", voiceable: true },
+        { key: "employment_sphere" as const, label: lang === "ru" ? "Сфера занятости" : "Employment Sphere", placeholder: lang === "ru" ? "IT, медицина, образование..." : "IT, medicine, education...", type: "text", voiceable: false },
+        { key: "education" as const, label: lang === "ru" ? "Образование" : "Education", placeholder: lang === "ru" ? "Ваше образование" : "Your education", type: "text", voiceable: true },
+        { key: "languages" as const, label: lang === "ru" ? "Языки" : "Languages", placeholder: lang === "ru" ? "Какие языки вы знаете?" : "Which languages do you speak?", type: "text", voiceable: false },
         { key: "family" as const, label: lang === "ru" ? "Семья" : "Family", placeholder: lang === "ru" ? "Расскажите о своей семье" : "Tell about your family", type: "textarea", voiceable: true },
         { key: "hobbies" as const, label: lang === "ru" ? "Увлечения" : "Hobbies", placeholder: lang === "ru" ? "Что вас вдохновляет?" : "What inspires you?", type: "textarea", voiceable: true },
       ],
