@@ -302,7 +302,8 @@ const FamilyTreePage = () => {
           <div className="flex flex-wrap justify-center gap-4">
             {treeOrphans.map(m => (
               <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
-                birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes} status="confirmed" />
+                birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes}
+                geneticConditions={(m as any).genetic_conditions} status="confirmed" />
             ))}
           </div>
         )}
