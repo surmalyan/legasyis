@@ -8,7 +8,6 @@ interface FamilyTreeNodeProps {
   notes?: string | null;
   geneticConditions?: string | null;
   avatarUrl?: string | null;
-  avatarUrl?: string | null;
   status?: "local" | "pending" | "confirmed";
   isCenter?: boolean;
   onDelete?: () => void;
