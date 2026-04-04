@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, Plus, Loader2, UserPlus, Link2 } from "lucide-react";
+import { ChevronLeft, Plus, Loader2, UserPlus, Link2, Search } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import FamilyTreeNode from "@/components/family-tree/FamilyTreeNode";
