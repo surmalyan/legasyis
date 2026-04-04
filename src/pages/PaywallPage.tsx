@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
+import { Input } from "@/components/ui/input";
 import { activateStubSubscription } from "@/hooks/use-subscription";
 import { BookOpen, Crown, Check, Loader2, Infinity, Mic, Users, BookMarked, Gift } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +13,8 @@ const PaywallPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Plan>("yearly");
+  const [giftEmail, setGiftEmail] = useState("");
+  const [giftError, setGiftError] = useState("");
 
   const features = lang === "ru" ? [
     { icon: Infinity, text: "Безлимитные записи навсегда" },
@@ -49,6 +52,13 @@ const PaywallPage = () => {
   };
 
   const handleSubscribe = async () => {
+    if (selected === "gift") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!giftEmail.trim() || !emailRegex.test(giftEmail.trim())) {
+        setGiftError(lang === "ru" ? "Введите корректный email" : "Enter a valid email");
+        return;
+      }
+    }
     setLoading(true);
     try {
       await activateStubSubscription();
@@ -126,6 +136,24 @@ const PaywallPage = () => {
             </button>
           ))}
         </div>
+
+        {/* Gift email input */}
+        {selected === "gift" && (
+          <div className="w-full max-w-sm mb-4 animate-fade-in">
+            <label className="text-sm font-medium text-foreground mb-1.5 block">
+              {lang === "ru" ? "Email получателя" : "Recipient's email"}
+            </label>
+            <Input
+              type="email"
+              placeholder="email@example.com"
+              value={giftEmail}
+              onChange={(e) => { setGiftEmail(e.target.value); setGiftError(""); }}
+              className={`rounded-xl ${giftError ? "border-destructive" : ""}`}
+              maxLength={255}
+            />
+            {giftError && <p className="text-xs text-destructive mt-1">{giftError}</p>}
+          </div>
+        )}
 
         <p className="text-xs text-muted-foreground mb-4">{t.stub}</p>
 
