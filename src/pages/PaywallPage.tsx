@@ -13,6 +13,8 @@ const PaywallPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Plan>("yearly");
+  const [giftEmail, setGiftEmail] = useState("");
+  const [giftError, setGiftError] = useState("");
 
   const features = lang === "ru" ? [
     { icon: Infinity, text: "Безлимитные записи навсегда" },
