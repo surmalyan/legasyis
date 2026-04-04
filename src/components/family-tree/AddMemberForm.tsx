@@ -20,7 +20,7 @@ interface Props {
 
 const AddMemberForm = ({ lang, userId, members, relationships, onClose, onAdded }: Props) => {
   const [form, setForm] = useState({
-    name: "", relationship: "", birth_year: "", death_year: "", parent_member_id: "", notes: "",
+    name: "", relationship: "", birth_year: "", death_year: "", parent_member_id: "", notes: "", genetic_conditions: "",
   });
   const [saving, setSaving] = useState(false);
 
