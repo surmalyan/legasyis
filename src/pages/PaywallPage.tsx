@@ -52,6 +52,13 @@ const PaywallPage = () => {
   };
 
   const handleSubscribe = async () => {
+    if (selected === "gift") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!giftEmail.trim() || !emailRegex.test(giftEmail.trim())) {
+        setGiftError(lang === "ru" ? "Введите корректный email" : "Enter a valid email");
+        return;
+      }
+    }
     setLoading(true);
     try {
       await activateStubSubscription();
