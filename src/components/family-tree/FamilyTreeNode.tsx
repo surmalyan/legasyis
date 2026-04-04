@@ -6,6 +6,8 @@ interface FamilyTreeNodeProps {
   birthYear?: number | null;
   deathYear?: number | null;
   notes?: string | null;
+  geneticConditions?: string | null;
+  avatarUrl?: string | null;
   avatarUrl?: string | null;
   status?: "local" | "pending" | "confirmed";
   isCenter?: boolean;
