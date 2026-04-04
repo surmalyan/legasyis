@@ -19,6 +19,7 @@ interface FamilyMember {
   death_year: number | null;
   parent_member_id: string | null;
   notes: string | null;
+  genetic_conditions: string | null;
   user_id?: string;
 }
 
