@@ -34,7 +34,7 @@ const emptyProfile: ProfileData = {
   would_change: "", completion_step: 0, is_public: false,
 };
 
-type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url" | "is_public">;
+type FieldKey = keyof Omit<ProfileData, "completion_step" | "avatar_url" | "is_public" | "username">;
 
 const ProfilePage = () => {
   const { lang } = useI18n();
