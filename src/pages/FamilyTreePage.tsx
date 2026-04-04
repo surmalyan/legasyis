@@ -210,6 +210,55 @@ const FamilyTreePage = () => {
     );
   };
 
+  // Render a connected user's tree (read-only)
+  const renderConnectedTree = (treeMembers: FamilyMember[]) => {
+    const treeRoots = treeMembers.filter(m => !m.parent_member_id);
+    const getTreeChildren = (parentId: string) => treeMembers.filter(m => m.parent_member_id === parentId);
+    const treeOrphans = treeMembers.filter(m => m.parent_member_id && !treeMembers.find(p => p.id === m.parent_member_id));
+
+    const renderLevel = (parents: FamilyMember[]): React.ReactNode => {
+      if (parents.length === 0) return null;
+      return (
+        <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
+            {parents.map(member => (
+              <div key={member.id} className="flex flex-col items-center">
+                <FamilyTreeNode
+                  name={member.name}
+                  relationship={member.relationship}
+                  birthYear={member.birth_year}
+                  deathYear={member.death_year}
+                  notes={member.notes}
+                  status="confirmed"
+                />
+                {getTreeChildren(member.id).length > 0 && (
+                  <>
+                    <div className="w-px h-6 bg-border" />
+                    {renderLevel(getTreeChildren(member.id))}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    return (
+      <>
+        {treeRoots.length > 0 && renderLevel(treeRoots)}
+        {treeOrphans.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-4">
+            {treeOrphans.map(m => (
+              <FamilyTreeNode key={m.id} name={m.name} relationship={m.relationship}
+                birthYear={m.birth_year} deathYear={m.death_year} notes={m.notes} status="confirmed" />
+            ))}
+          </div>
+        )}
+      </>
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
