@@ -425,6 +425,45 @@ const ProfilePage = () => {
                                 <input type="date" value={value}
                                   onChange={(e) => handleChange(key, e.target.value)}
                                   className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                              ) : key === "employment_sphere" ? (
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {SPHERES_OPTIONS.map(opt => (
+                                      <button key={opt} type="button"
+                                        onClick={() => handleChange(key, value === opt ? "" : opt)}
+                                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${value === opt ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent"}`}>
+                                        {opt}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <input type="text" value={value}
+                                    onChange={(e) => handleChange(key, e.target.value)}
+                                    placeholder={lang === "ru" ? "Или введите вручную" : "Or type manually"}
+                                    maxLength={200} className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                                </div>
+                              ) : key === "languages" ? (
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {LANGUAGES_OPTIONS.map(opt => {
+                                      const current = value.split(", ").filter(Boolean);
+                                      const selected = current.includes(opt);
+                                      return (
+                                        <button key={opt} type="button"
+                                          onClick={() => {
+                                            const updated = selected ? current.filter(l => l !== opt) : [...current, opt];
+                                            handleChange(key, updated.join(", "));
+                                          }}
+                                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent"}`}>
+                                          {opt}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <input type="text" value={value}
+                                    onChange={(e) => handleChange(key, e.target.value)}
+                                    placeholder={lang === "ru" ? "Или введите вручную" : "Or type manually"}
+                                    maxLength={200} className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                                </div>
                               ) : ["family", "hobbies", "life_motto", "biggest_dream", "grateful_for", "advice_to_descendants", "would_change"].includes(key) ? (
                                 <textarea value={value}
                                   onChange={(e) => handleChange(key, e.target.value)}
