@@ -235,7 +235,7 @@ const ProfilePage = () => {
 
     const sections = [
       { title: t.surface, keys: ["full_name", "birth_date", "city"] as FieldKey[] },
-      { title: t.medium, keys: ["occupation", "family", "hobbies"] as FieldKey[] },
+      { title: t.medium, keys: ["occupation", "employment_sphere", "education", "languages", "family", "hobbies"] as FieldKey[] },
       { title: t.deep, keys: ["life_motto", "biggest_dream", "grateful_for"] as FieldKey[] },
       { title: t.deepest, keys: ["advice_to_descendants", "would_change"] as FieldKey[] },
     ];
