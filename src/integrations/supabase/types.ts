@@ -82,6 +82,7 @@ export type Database = {
           birth_year: number | null
           created_at: string
           death_year: number | null
+          genetic_conditions: string | null
           id: string
           name: string
           notes: string | null
@@ -93,6 +94,7 @@ export type Database = {
           birth_year?: number | null
           created_at?: string
           death_year?: number | null
+          genetic_conditions?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           birth_year?: number | null
           created_at?: string
           death_year?: number | null
+          genetic_conditions?: string | null
           id?: string
           name?: string
           notes?: string | null
