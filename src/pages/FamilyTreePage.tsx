@@ -62,6 +62,9 @@ const FamilyTreePage = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Array<{ user_id: string; full_name: string; username: string; avatar_url: string | null }>>([]);
+  const [searching, setSearching] = useState(false);
 
   const t = {
     title: lang === "ru" ? "Семейное древо" : "Family Tree",
