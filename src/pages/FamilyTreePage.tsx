@@ -171,6 +171,48 @@ const FamilyTreePage = () => {
     loadData();
   };
 
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 2) { setSearchResults([]); return; }
+    setSearching(true);
+    const { data } = await supabase
+      .from("profiles")
+      .select("user_id, full_name, avatar_url, username")
+      .ilike("username", `%${query.toLowerCase()}%`)
+      .neq("user_id", user!.id)
+      .limit(10);
+    setSearchResults((data as any[])?.map(d => ({
+      user_id: d.user_id, full_name: d.full_name || "", username: d.username || "",
+      avatar_url: d.avatar_url,
+    })) || []);
+    setSearching(false);
+  };
+
+  const handleQuickInvite = async (targetUserId: string) => {
+    // Check if connection already exists
+    const existing = [...connections, ...incoming].find(c =>
+      (c.requester_id === user!.id && c.target_user_id === targetUserId) ||
+      (c.target_user_id === user!.id && c.requester_id === targetUserId)
+    );
+    if (existing) {
+      toast.info(lang === "ru" ? "Запрос уже отправлен" : "Request already sent");
+      return;
+    }
+    // Get target email from profiles — we need it for family_connections
+    const { error } = await supabase.from("family_connections").insert({
+      requester_id: user!.id,
+      target_email: "via-username",
+      target_user_id: targetUserId,
+      relationship: lang === "ru" ? "Родственник" : "Relative",
+      status: "pending",
+    });
+    if (error) { toast.error(lang === "ru" ? "Ошибка" : "Error"); return; }
+    toast.success(lang === "ru" ? "Запрос отправлен!" : "Request sent!");
+    setSearchQuery("");
+    setSearchResults([]);
+    loadData();
+  };
+
   // Build tree layers
   const roots = members.filter(m => !m.parent_member_id);
   const getChildren = (parentId: string) => members.filter(m => m.parent_member_id === parentId);
