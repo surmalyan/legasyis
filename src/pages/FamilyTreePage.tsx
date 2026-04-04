@@ -317,6 +317,18 @@ const FamilyTreePage = () => {
                   </div>
                 )}
 
+                {/* Connected users' trees */}
+                {connectedTrees.map(tree => (
+                  <div key={tree.userId} className="mt-4 border-t border-border pt-6">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Link2 size={14} /> {t.linkedTree} {tree.email} ({tree.relationship})
+                    </h3>
+                    <div className="flex flex-col items-center gap-4">
+                      {renderConnectedTree(tree.members)}
+                    </div>
+                  </div>
+                ))}
+
                 {/* Confirmed connections */}
                 {confirmedConnections.length > 0 && (
                   <div className="mt-4 border-t border-border pt-6">
