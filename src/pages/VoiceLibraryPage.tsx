@@ -46,8 +46,9 @@ const VoiceLibraryPage = () => {
 
     if (audioEl) audioEl.pause();
 
-    const { data } = supabase.storage.from("voice-notes").getPublicUrl(rec.storage_path);
-    const audio = new Audio(data.publicUrl);
+    const { data } = await supabase.storage.from("voice-notes").createSignedUrl(rec.storage_path, 3600);
+    if (!data?.signedUrl) return;
+    const audio = new Audio(data.signedUrl);
     audio.onended = () => setPlayingId(null);
     audio.play();
     setAudioEl(audio);

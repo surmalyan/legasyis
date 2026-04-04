@@ -80,7 +80,7 @@ export async function activateStubSubscription(): Promise<void> {
 
   const { error } = await supabase
     .from("user_subscriptions")
-    .insert({ user_id: user.id, active: true });
+    .insert({ user_id: user.id, active: false });
 
   if (error && error.code !== "23505") throw error;
 }
