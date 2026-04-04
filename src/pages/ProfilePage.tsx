@@ -86,6 +86,14 @@ const ProfilePage = () => {
     would_change: { label: lang === "ru" ? "Что бы изменили" : "Would Change", icon: Edit3 },
   };
 
+  const LANGUAGES_OPTIONS = lang === "ru"
+    ? ["Русский", "Английский", "Испанский", "Французский", "Немецкий", "Китайский", "Японский", "Арабский", "Португальский", "Итальянский", "Корейский", "Турецкий", "Хинди", "Польский", "Украинский"]
+    : ["English", "Spanish", "French", "German", "Chinese", "Japanese", "Arabic", "Portuguese", "Italian", "Korean", "Turkish", "Hindi", "Polish", "Russian", "Ukrainian"];
+
+  const SPHERES_OPTIONS = lang === "ru"
+    ? ["IT и технологии", "Медицина", "Образование", "Финансы и банки", "Юриспруденция", "Маркетинг и реклама", "Строительство", "Производство", "Торговля", "Транспорт и логистика", "Наука", "Искусство и культура", "СМИ", "Государственная служба", "Сельское хозяйство", "Спорт", "Другое"]
+    : ["IT & Technology", "Healthcare", "Education", "Finance & Banking", "Legal", "Marketing & Advertising", "Construction", "Manufacturing", "Retail & Trade", "Transport & Logistics", "Science", "Arts & Culture", "Media", "Government", "Agriculture", "Sports", "Other"];
+
   const steps = [
     {
       title: t.surface,
@@ -103,9 +111,9 @@ const ProfilePage = () => {
       hasAvatar: false,
       fields: [
         { key: "occupation" as const, label: lang === "ru" ? "Род деятельности" : "Occupation", placeholder: lang === "ru" ? "Чем вы занимаетесь?" : "What do you do?", type: "text", voiceable: true },
-        { key: "employment_sphere" as const, label: lang === "ru" ? "Сфера занятости" : "Employment Sphere", placeholder: lang === "ru" ? "IT, медицина, образование..." : "IT, medicine, education...", type: "text", voiceable: false },
+        { key: "employment_sphere" as const, label: lang === "ru" ? "Сфера занятости" : "Employment Sphere", placeholder: lang === "ru" ? "Выберите или введите" : "Select or type", type: "select", voiceable: false },
         { key: "education" as const, label: lang === "ru" ? "Образование" : "Education", placeholder: lang === "ru" ? "Ваше образование" : "Your education", type: "text", voiceable: true },
-        { key: "languages" as const, label: lang === "ru" ? "Языки" : "Languages", placeholder: lang === "ru" ? "Какие языки вы знаете?" : "Which languages do you speak?", type: "text", voiceable: false },
+        { key: "languages" as const, label: lang === "ru" ? "Языки" : "Languages", placeholder: lang === "ru" ? "Выберите или введите" : "Select or type", type: "multiselect", voiceable: false },
         { key: "family" as const, label: lang === "ru" ? "Семья" : "Family", placeholder: lang === "ru" ? "Расскажите о своей семье" : "Tell about your family", type: "textarea", voiceable: true },
         { key: "hobbies" as const, label: lang === "ru" ? "Увлечения" : "Hobbies", placeholder: lang === "ru" ? "Что вас вдохновляет?" : "What inspires you?", type: "textarea", voiceable: true },
       ],
@@ -417,6 +425,45 @@ const ProfilePage = () => {
                                 <input type="date" value={value}
                                   onChange={(e) => handleChange(key, e.target.value)}
                                   className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                              ) : key === "employment_sphere" ? (
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {SPHERES_OPTIONS.map(opt => (
+                                      <button key={opt} type="button"
+                                        onClick={() => handleChange(key, value === opt ? "" : opt)}
+                                        className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${value === opt ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent"}`}>
+                                        {opt}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <input type="text" value={value}
+                                    onChange={(e) => handleChange(key, e.target.value)}
+                                    placeholder={lang === "ru" ? "Или введите вручную" : "Or type manually"}
+                                    maxLength={200} className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                                </div>
+                              ) : key === "languages" ? (
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {LANGUAGES_OPTIONS.map(opt => {
+                                      const current = value.split(", ").filter(Boolean);
+                                      const selected = current.includes(opt);
+                                      return (
+                                        <button key={opt} type="button"
+                                          onClick={() => {
+                                            const updated = selected ? current.filter(l => l !== opt) : [...current, opt];
+                                            handleChange(key, updated.join(", "));
+                                          }}
+                                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground hover:bg-accent"}`}>
+                                          {opt}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                  <input type="text" value={value}
+                                    onChange={(e) => handleChange(key, e.target.value)}
+                                    placeholder={lang === "ru" ? "Или введите вручную" : "Or type manually"}
+                                    maxLength={200} className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring" />
+                                </div>
                               ) : ["family", "hobbies", "life_motto", "biggest_dream", "grateful_for", "advice_to_descendants", "would_change"].includes(key) ? (
                                 <textarea value={value}
                                   onChange={(e) => handleChange(key, e.target.value)}
@@ -504,6 +551,46 @@ const ProfilePage = () => {
                 <textarea value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
                   placeholder={field.placeholder} rows={3} maxLength={1000}
                   className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none transition-shadow" />
+              ) : field.type === "select" ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {SPHERES_OPTIONS.map(opt => {
+                      const selected = (profile[field.key] as string) === opt;
+                      return (
+                        <button key={opt} type="button"
+                          onClick={() => handleChange(field.key, selected ? "" : opt)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-accent"}`}>
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input type="text" value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
+                    placeholder={field.placeholder} maxLength={200}
+                    className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
+                </div>
+              ) : field.type === "multiselect" ? (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
+                    {LANGUAGES_OPTIONS.map(opt => {
+                      const current = (profile[field.key] as string).split(", ").filter(Boolean);
+                      const selected = current.includes(opt);
+                      return (
+                        <button key={opt} type="button"
+                          onClick={() => {
+                            const updated = selected ? current.filter(l => l !== opt) : [...current, opt];
+                            handleChange(field.key, updated.join(", "));
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-colors ${selected ? "bg-primary text-primary-foreground" : "bg-card border border-border text-foreground hover:bg-accent"}`}>
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input type="text" value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
+                    placeholder={lang === "ru" ? "Или введите вручную" : "Or type manually"} maxLength={200}
+                    className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-shadow" />
+                </div>
               ) : (
                 <input type={field.type} value={profile[field.key] as string} onChange={(e) => handleChange(field.key, e.target.value)}
                   placeholder={field.placeholder} maxLength={200}
