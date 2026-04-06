@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import AvatarUpload from "@/components/AvatarUpload";
 import VoiceInput from "@/components/VoiceInput";
+import StaticLogo from "@/components/StaticLogo";
 
 interface ProfileData {
   full_name: string;
@@ -254,6 +255,7 @@ const ProfilePage = () => {
           <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
             <ChevronLeft size={24} />
           </button>
+          <StaticLogo size={32} />
           <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display flex-1">{t.title}</h1>
           <button onClick={() => { setViewMode(false); setStep(0); }}
             className="text-xs text-primary font-medium hover:underline">
@@ -506,6 +508,7 @@ const ProfilePage = () => {
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display">{t.title}</h1>
       </header>
 

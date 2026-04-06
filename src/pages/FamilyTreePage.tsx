@@ -10,6 +10,7 @@ import FamilyTreeNode from "@/components/family-tree/FamilyTreeNode";
 import AddMemberForm from "@/components/family-tree/AddMemberForm";
 import InviteFamilyModal from "@/components/family-tree/InviteFamilyModal";
 import ZoomPanCanvas from "@/components/family-tree/ZoomPanCanvas";
+import StaticLogo from "@/components/StaticLogo";
 
 interface FamilyMember {
   id: string;
@@ -325,6 +326,7 @@ const FamilyTreePage = () => {
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display flex-1">{t.title}</h1>
         <button onClick={() => setShowInvite(true)}
           className="p-2 rounded-full bg-accent text-accent-foreground hover:bg-accent/80 transition-colors mr-1"

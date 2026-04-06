@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Mic, Play, Pause, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import StaticLogo from "@/components/StaticLogo";
 
 interface VoiceRecording {
   id: string;
@@ -90,9 +91,7 @@ const VoiceLibraryPage = () => {
     <div className="min-h-screen bg-background pb-24">
       <div className="max-w-lg mx-auto px-4 pt-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2.5 rounded-2xl bg-primary/10">
-            <Mic size={24} className="text-primary" />
-          </div>
+          <StaticLogo size={36} />
           <div>
             <h1 className="text-xl font-serif-display font-bold text-foreground">
               {lang === "ru" ? "Голосовая библиотека" : "Voice Library"}
