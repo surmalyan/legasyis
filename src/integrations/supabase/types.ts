@@ -142,6 +142,7 @@ export type Database = {
           id: string
           is_public: boolean
           languages: string | null
+          last_active_at: string | null
           life_motto: string | null
           occupation: string | null
           updated_at: string
@@ -166,6 +167,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           languages?: string | null
+          last_active_at?: string | null
           life_motto?: string | null
           occupation?: string | null
           updated_at?: string
@@ -190,6 +192,7 @@ export type Database = {
           id?: string
           is_public?: boolean
           languages?: string | null
+          last_active_at?: string | null
           life_motto?: string | null
           occupation?: string | null
           updated_at?: string
