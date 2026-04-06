@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
-import type { NotificationFrequency } from "@/lib/notifications";
+import type { NotificationFrequency, NotificationCategory } from "@/lib/notifications";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,8 +10,9 @@ import {
   saveNotificationSettings,
   requestNotificationPermission,
   getNotificationPermission,
+  sendTestNotification,
 } from "@/lib/notifications";
-import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon, Lock, Trash2, Loader2 } from "lucide-react";
+import { Bell, BellOff, LogOut, ChevronLeft, Globe, Sun, Moon, Lock, Trash2, Loader2, Send, Volume2, VolumeX, Trophy, MessageSquareHeart, Clock } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
@@ -27,41 +28,92 @@ const SettingsPage = () => {
   const [preferredHour, setPreferredHour] = useState(9);
   const [preferredMinute, setPreferredMinute] = useState(0);
   const [permissionState, setPermissionState] = useState<NotificationPermission | null>(null);
+  const [categories, setCategories] = useState<NotificationCategory[]>(["reminder", "motivation"]);
+  const [motivationalQuotes, setMotivationalQuotes] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [testingSending, setTestingSending] = useState(false);
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   useEffect(() => {
     const settings = getNotificationSettings();
     setNotifEnabled(settings.enabled);
     setFrequency(settings.frequency);
     setPreferredHour(settings.preferredHour);
     setPreferredMinute(settings.preferredMinute);
+    setCategories(settings.categories || ["reminder", "motivation"]);
+    setMotivationalQuotes(settings.motivationalQuotes !== false);
+    setSoundEnabled(settings.soundEnabled !== false);
     setPermissionState(getNotificationPermission());
   }, []);
+
+  const updateSettings = (patch: Partial<ReturnType<typeof getNotificationSettings>>) => {
+    const current = getNotificationSettings();
+    saveNotificationSettings({ ...current, ...patch });
+  };
 
   const handleToggleNotifications = async () => {
     if (!notifEnabled) {
       const granted = await requestNotificationPermission();
-      if (!granted) return;
-      saveNotificationSettings({ ...getNotificationSettings(), enabled: true, frequency });
+      if (!granted) {
+        toast.error(lang === "ru" ? "Разрешение не получено" : "Permission not granted");
+        return;
+      }
+      updateSettings({ enabled: true });
       setNotifEnabled(true);
       setPermissionState("granted");
+      toast.success(lang === "ru" ? "Уведомления включены!" : "Notifications enabled!");
     } else {
-      saveNotificationSettings({ ...getNotificationSettings(), enabled: false });
+      updateSettings({ enabled: false });
       setNotifEnabled(false);
+      toast.info(lang === "ru" ? "Уведомления выключены" : "Notifications disabled");
     }
   };
 
   const handleFrequencyChange = (f: NotificationFrequency) => {
     setFrequency(f);
-    saveNotificationSettings({ ...getNotificationSettings(), frequency: f });
+    updateSettings({ frequency: f });
   };
 
   const handleTimeChange = (h: number, m: number) => {
     setPreferredHour(h);
     setPreferredMinute(m);
-    saveNotificationSettings({ ...getNotificationSettings(), preferredHour: h, preferredMinute: m });
+    updateSettings({ preferredHour: h, preferredMinute: m });
+  };
+
+  const handleCategoryToggle = (cat: NotificationCategory) => {
+    const newCats = categories.includes(cat)
+      ? categories.filter((c) => c !== cat)
+      : [...categories, cat];
+    if (newCats.length === 0) return; // at least one required
+    setCategories(newCats);
+    updateSettings({ categories: newCats });
+  };
+
+  const handleMotivationalToggle = () => {
+    const val = !motivationalQuotes;
+    setMotivationalQuotes(val);
+    updateSettings({ motivationalQuotes: val });
+  };
+
+  const handleSoundToggle = () => {
+    const val = !soundEnabled;
+    setSoundEnabled(val);
+    updateSettings({ soundEnabled: val });
+  };
+
+  const handleTestNotification = async () => {
+    setTestingSending(true);
+    const success = await sendTestNotification(lang);
+    setTestingSending(false);
+    if (success) {
+      toast.success(lang === "ru" ? "Тестовое уведомление отправлено!" : "Test notification sent!");
+    } else {
+      toast.error(lang === "ru" ? "Не удалось отправить" : "Failed to send");
+    }
   };
 
   const handleSignOut = async () => {
@@ -96,8 +148,8 @@ const SettingsPage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    toast.error(lang === "ru" 
-      ? "Для удаления аккаунта напишите в поддержку" 
+    toast.error(lang === "ru"
+      ? "Для удаления аккаунта напишите в поддержку"
       : "To delete your account, contact support");
     setShowDeleteConfirm(false);
   };
@@ -105,9 +157,7 @@ const SettingsPage = () => {
   const t = {
     settings: lang === "ru" ? "Настройки" : "Settings",
     notifications: lang === "ru" ? "Уведомления" : "Notifications",
-    notifDesc: lang === "ru"
-      ? "Напоминание записать свою историю"
-      : "Reminder to write your story",
+    notifDesc: lang === "ru" ? "Напоминание записать свою историю" : "Reminder to write your story",
     daily: lang === "ru" ? "Ежедневно" : "Daily",
     threePerWeek: lang === "ru" ? "3 раза/нед" : "3x/week",
     weekly: lang === "ru" ? "Еженедельно" : "Weekly",
@@ -122,13 +172,30 @@ const SettingsPage = () => {
     deleteWarning: lang === "ru" ? "Это действие необратимо. Все ваши данные будут удалены." : "This action is irreversible. All your data will be deleted.",
     cancel: lang === "ru" ? "Отмена" : "Cancel",
     confirm: lang === "ru" ? "Удалить" : "Delete",
-    notSupported: lang === "ru"
-      ? "Уведомления не поддерживаются в этом браузере"
-      : "Notifications not supported in this browser",
-    denied: lang === "ru"
-      ? "Уведомления заблокированы в настройках браузера"
-      : "Notifications blocked in browser settings",
+    notSupported: lang === "ru" ? "Уведомления не поддерживаются в этом браузере" : "Notifications not supported in this browser",
+    denied: lang === "ru" ? "Уведомления заблокированы в настройках браузера" : "Notifications blocked in browser settings",
   };
+
+  const categoryItems: { key: NotificationCategory; icon: typeof Bell; label: string; desc: string }[] = [
+    {
+      key: "reminder",
+      icon: Clock,
+      label: lang === "ru" ? "Напоминания" : "Reminders",
+      desc: lang === "ru" ? "Напоминание записать историю" : "Reminders to write your story",
+    },
+    {
+      key: "motivation",
+      icon: MessageSquareHeart,
+      label: lang === "ru" ? "Мотивация" : "Motivation",
+      desc: lang === "ru" ? "Вдохновляющие цитаты и мысли" : "Inspirational quotes and thoughts",
+    },
+    {
+      key: "milestone",
+      icon: Trophy,
+      label: lang === "ru" ? "Достижения" : "Milestones",
+      desc: lang === "ru" ? "Уведомления о ваших успехах" : "Notifications about your achievements",
+    },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -156,9 +223,7 @@ const SettingsPage = () => {
                 key={l}
                 onClick={() => setLang(l)}
                 className={`flex-1 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] ${
-                  lang === l
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-accent"
+                  lang === l ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"
                 }`}
               >
                 {l === "ru" ? "Русский" : "English"}
@@ -183,9 +248,7 @@ const SettingsPage = () => {
                 key={t}
                 onClick={() => setTheme(t)}
                 className={`flex-1 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] ${
-                  theme === t
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-accent"
+                  theme === t ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"
                 }`}
               >
                 {t === "light" ? (lang === "ru" ? "Светлая" : "Light") : (lang === "ru" ? "Тёмная" : "Dark")}
@@ -209,7 +272,14 @@ const SettingsPage = () => {
           {!isNotificationSupported() ? (
             <p className="text-xs text-muted-foreground bg-muted rounded-xl px-4 py-3">{t.notSupported}</p>
           ) : permissionState === "denied" ? (
-            <p className="text-xs text-muted-foreground bg-muted rounded-xl px-4 py-3">{t.denied}</p>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground bg-muted rounded-xl px-4 py-3">{t.denied}</p>
+              <p className="text-xs text-muted-foreground px-1">
+                {lang === "ru"
+                  ? "Откройте настройки браузера → Сайты → Уведомления → разрешите для этого сайта"
+                  : "Open browser settings → Sites → Notifications → allow for this site"}
+              </p>
+            </div>
           ) : (
             <>
               {/* Toggle */}
@@ -222,59 +292,151 @@ const SettingsPage = () => {
                 }`}
               >
                 {notifEnabled
-                  ? (lang === "ru" ? "Выключить" : "Disable")
-                  : (lang === "ru" ? "Включить" : "Enable")}
+                  ? (lang === "ru" ? "Выключить уведомления" : "Disable Notifications")
+                  : (lang === "ru" ? "Включить уведомления" : "Enable Notifications")}
               </button>
 
-              {/* Frequency selector */}
               {notifEnabled && (
-                <>
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.frequency}</p>
-                  <div className="flex gap-2">
-                    {(["daily", "3x_week", "weekly"] as const).map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => handleFrequencyChange(f)}
-                        className={`flex-1 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] ${
-                          frequency === f
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted text-muted-foreground hover:bg-accent"
-                        }`}
-                      >
-                        {f === "daily" ? t.daily : f === "3x_week" ? t.threePerWeek : t.weekly}
-                      </button>
-                    ))}
+                <div className="space-y-5 animate-fade-in">
+                  {/* Frequency */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.frequency}</p>
+                    <div className="flex gap-2">
+                      {(["daily", "3x_week", "weekly"] as const).map((f) => (
+                        <button
+                          key={f}
+                          onClick={() => handleFrequencyChange(f)}
+                          className={`flex-1 rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] ${
+                            frequency === f
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground hover:bg-accent"
+                          }`}
+                        >
+                          {f === "daily" ? t.daily : f === "3x_week" ? t.threePerWeek : t.weekly}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {lang === "ru" ? "Время" : "Time"}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={preferredHour}
-                      onChange={(e) => handleTimeChange(Number(e.target.value), preferredMinute)}
-                      className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
-                      ))}
-                    </select>
-                    <span className="text-foreground font-semibold">:</span>
-                    <select
-                      value={preferredMinute}
-                      onChange={(e) => handleTimeChange(preferredHour, Number(e.target.value))}
-                      className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
-                    >
-                      {[0, 15, 30, 45].map((m) => (
-                        <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
-                      ))}
-                    </select>
+                  {/* Time */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {lang === "ru" ? "Предпочтительное время" : "Preferred Time"}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={preferredHour}
+                        onChange={(e) => handleTimeChange(Number(e.target.value), preferredMinute)}
+                        className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <option key={i} value={i}>{String(i).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                      <span className="text-foreground font-semibold">:</span>
+                      <select
+                        value={preferredMinute}
+                        onChange={(e) => handleTimeChange(preferredHour, Number(e.target.value))}
+                        className="flex-1 rounded-xl py-3 px-3 text-sm font-medium bg-muted text-foreground border border-border appearance-none text-center"
+                      >
+                        {[0, 15, 30, 45].map((m) => (
+                          <option key={m} value={m}>{String(m).padStart(2, "0")}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {lang === "ru"
+                        ? "Уведомления будут приходить примерно в это время (±2 часа)"
+                        : "Notifications will arrive around this time (±2 hours)"}
+                    </p>
                   </div>
+
+                  {/* Categories */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {lang === "ru" ? "Типы уведомлений" : "Notification Types"}
+                    </p>
+                    <div className="space-y-2">
+                      {categoryItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = categories.includes(item.key);
+                        return (
+                          <button
+                            key={item.key}
+                            onClick={() => handleCategoryToggle(item.key)}
+                            className={`w-full flex items-center gap-3 rounded-xl p-3 text-left transition-all ${
+                              active
+                                ? "bg-primary/10 border border-primary/20"
+                                : "bg-muted border border-transparent"
+                            }`}
+                          >
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${active ? "bg-primary/20" : "bg-muted-foreground/10"}`}>
+                              <Icon size={16} className={active ? "text-primary" : "text-muted-foreground"} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className={`text-sm font-medium ${active ? "text-foreground" : "text-muted-foreground"}`}>{item.label}</p>
+                              <p className="text-xs text-muted-foreground">{item.desc}</p>
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                              active ? "border-primary bg-primary" : "border-muted-foreground/30"
+                            }`}>
+                              {active && <div className="w-2 h-2 bg-primary-foreground rounded-full" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Extra toggles */}
+                  <div className="space-y-3">
+                    {/* Motivational quotes */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <MessageSquareHeart size={16} className="text-muted-foreground" />
+                        <span className="text-sm text-foreground">
+                          {lang === "ru" ? "Вдохновляющие цитаты" : "Inspirational quotes"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleMotivationalToggle}
+                        className={`relative w-11 h-6 rounded-full transition-colors ${motivationalQuotes ? "bg-primary" : "bg-muted"}`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${motivationalQuotes ? "translate-x-5" : ""}`} />
+                      </button>
+                    </div>
+
+                    {/* Sound */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {soundEnabled ? <Volume2 size={16} className="text-muted-foreground" /> : <VolumeX size={16} className="text-muted-foreground" />}
+                        <span className="text-sm text-foreground">
+                          {lang === "ru" ? "Звук уведомлений" : "Notification sound"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={handleSoundToggle}
+                        className={`relative w-11 h-6 rounded-full transition-colors ${soundEnabled ? "bg-primary" : "bg-muted"}`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${soundEnabled ? "translate-x-5" : ""}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Test notification */}
+                  <button
+                    onClick={handleTestNotification}
+                    disabled={testingSending}
+                    className="w-full flex items-center justify-center gap-2 bg-accent text-accent-foreground rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] hover:opacity-90 disabled:opacity-40"
+                  >
+                    {testingSending ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Send size={16} />
+                    )}
+                    {lang === "ru" ? "Отправить тестовое уведомление" : "Send test notification"}
+                  </button>
                 </div>
-                </>
               )}
             </>
           )}
