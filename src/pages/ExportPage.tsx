@@ -8,6 +8,7 @@ import { ChevronLeft, Download, Loader2, BookOpen, Sparkles, Palette, Check, Loc
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import { bookThemes, generateBookStyles, type BookTheme } from "@/lib/book-themes";
+import StaticLogo from "@/components/StaticLogo";
 import { bookTypes, bookTypeOrder, type BookType } from "@/lib/book-types";
 
 const ExportPage = () => {
@@ -318,6 +319,7 @@ const ExportPage = () => {
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display">{t.title}</h1>
       </header>
 

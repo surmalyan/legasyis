@@ -20,6 +20,7 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
+import StaticLogo from "@/components/StaticLogo";
 
 // Password strength checker
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
@@ -255,6 +256,7 @@ const SettingsPage = () => {
         <button onClick={() => navigate(-1)} className="text-muted-foreground hover:text-foreground transition-colors">
           <ChevronLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <h1 className="text-lg font-semibold tracking-tight text-foreground font-serif-display">
           {lang === "ru" ? "Настройки" : "Settings"}
         </h1>

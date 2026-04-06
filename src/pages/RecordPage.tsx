@@ -7,6 +7,7 @@ import { transcribeAudio } from "@/lib/ai-service";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { ArrowLeft, Mic, Square, Play, Pause, RotateCcw, Send, Loader2 } from "lucide-react";
+import StaticLogo from "@/components/StaticLogo";
 import { toast } from "sonner";
 
 type ProcessingStep = null | "transcribing" | "saving";
@@ -120,6 +121,7 @@ const RecordPage = () => {
         <button onClick={() => navigate(-1)} disabled={!!processing} className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors disabled:opacity-40">
           <ArrowLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <div>
           <h1 className="text-lg font-semibold text-foreground">{t("recordAudio")}</h1>
           <span className="text-[10px] text-primary font-medium">{chapterLabel}</span>

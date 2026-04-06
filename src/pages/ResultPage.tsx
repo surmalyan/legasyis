@@ -3,6 +3,7 @@ import { useI18n } from "@/lib/i18n";
 import { ArrowLeft, Share2, Home, Archive } from "lucide-react";
 import { toast } from "sonner";
 import InfinitySymbol from "@/components/InfinitySymbol";
+import StaticLogo from "@/components/StaticLogo";
 import { chapterLabels } from "@/lib/diary-store";
 import type { DiaryEntry } from "@/lib/diary-store";
 
@@ -50,6 +51,7 @@ const ResultPage = () => {
         <button onClick={() => navigate("/")} className="p-2 -ml-2 rounded-xl text-foreground hover:bg-secondary transition-colors">
           <ArrowLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <button onClick={handleShare} className="p-2 -mr-2 rounded-xl text-foreground hover:bg-secondary transition-colors">
           <Share2 size={20} />
         </button>

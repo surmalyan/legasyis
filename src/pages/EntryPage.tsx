@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { saveEntryToDb, chapterLabels } from "@/lib/diary-store";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import StaticLogo from "@/components/StaticLogo";
 import { toast } from "sonner";
 
 const EntryPage = () => {
@@ -60,6 +61,7 @@ const EntryPage = () => {
         >
           <ArrowLeft size={24} />
         </button>
+        <StaticLogo size={32} />
         <div>
           <h1 className="text-lg font-semibold text-foreground">{t("writeAnswer")}</h1>
           <span className="text-[10px] text-primary font-medium">{chapterLabel}</span>
