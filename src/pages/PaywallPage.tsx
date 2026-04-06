@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { activateStubSubscription } from "@/hooks/use-subscription";
 import { Crown, Check, Loader2, Infinity, Mic, Users, BookMarked, Gift } from "lucide-react";
-import AnimatedLogo from "@/components/AnimatedLogo";
+import StaticLogo from "@/components/StaticLogo";
 import { toast } from "sonner";
 
 type Plan = "monthly" | "yearly" | "gift";
