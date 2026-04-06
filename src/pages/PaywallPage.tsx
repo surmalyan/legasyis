@@ -76,7 +76,7 @@ const PaywallPage = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1 flex flex-col items-center justify-center px-6 pb-8 pt-12">
         <div className="relative mb-6 animate-fade-in">
-          <AnimatedLogo size={80} />
+          <StaticLogo size={80} />
           <div className="absolute -top-1 -right-1 w-9 h-9 rounded-full bg-primary flex items-center justify-center shadow-lg">
             <Crown size={18} className="text-primary-foreground" />
           </div>

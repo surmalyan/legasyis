@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Loader2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/logo.png";
+import StaticLogo from "@/components/StaticLogo";
 
 const ResetPasswordPage = () => {
   const { lang } = useI18n();
