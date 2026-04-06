@@ -75,12 +75,8 @@ export function useSubscription(): SubscriptionState {
 }
 
 export async function activateStubSubscription(): Promise<void> {
+  // Subscription records are now managed server-side only.
+  // This stub is kept for UI flow compatibility until payment integration is added.
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("not_authenticated");
-
-  const { error } = await supabase
-    .from("user_subscriptions")
-    .insert({ user_id: user.id, active: false });
-
-  if (error && error.code !== "23505") throw error;
 }
