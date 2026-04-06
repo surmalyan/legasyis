@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import AnimatedLogo from "@/components/AnimatedLogo";
+import BackgroundPattern from "@/components/BackgroundPattern";
 import { useNavigate } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels } from "@/lib/diary-store";
@@ -51,8 +52,9 @@ const HomePage = () => {
   const chapterLabel = chapterLabels[lang]?.[questionData.chapter] || questionData.chapter;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="flex items-center justify-between px-6 pt-14 pb-2">
+    <div className="min-h-screen flex flex-col bg-background relative">
+      <BackgroundPattern />
+      <header className="flex items-center justify-between px-6 pt-14 pb-2 relative z-10">
         <div className="w-10" />
         <AnimatedLogo size={80} className="logo-entrance" />
         <button onClick={() => navigate("/settings")} className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
