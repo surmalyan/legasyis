@@ -34,6 +34,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Track last activity
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .update({ last_active_at: new Date().toISOString() })
+          .eq("user_id", session.user.id)
+          .then(() => {});
+      }
     });
 
     // If "remember me" is off, sign out when browser closes
