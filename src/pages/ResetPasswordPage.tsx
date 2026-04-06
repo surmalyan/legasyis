@@ -4,7 +4,7 @@ import { useI18n } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Loader2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
-import logo from "@/assets/logo.png";
+import StaticLogo from "@/components/StaticLogo";
 
 const ResetPasswordPage = () => {
   const { lang } = useI18n();
@@ -61,7 +61,7 @@ const ResetPasswordPage = () => {
   if (!isRecovery) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
-        <img src={logo} alt="Legacy" className="w-28 h-28 object-contain mb-6 logo-entrance" />
+        <StaticLogo size={112} className="mb-6 logo-entrance" />
         <p className="text-muted-foreground text-center">{t.invalid}</p>
         <button onClick={() => navigate("/auth")} className="mt-4 text-primary underline text-sm">
           {lang === "ru" ? "Вернуться к входу" : "Back to sign in"}
@@ -85,7 +85,7 @@ const ResetPasswordPage = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-8">
       <div className="logo-entrance mb-6">
-        <img src={logo} alt="Legacy" className="w-28 h-28 object-contain" />
+        <StaticLogo size={112} />
       </div>
       <h1 className="text-xl font-semibold text-foreground font-serif-display mb-6">{t.title}</h1>
 
