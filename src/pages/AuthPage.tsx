@@ -8,6 +8,7 @@ import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import LanguageToggle from "@/components/LanguageToggle";
 import AnimatedLogo from "@/components/AnimatedLogo";
+import BackgroundPattern from "@/components/BackgroundPattern";
 
 const AuthPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -95,8 +96,9 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="flex justify-end px-6 pt-14 pb-2">
+    <div className="min-h-screen flex flex-col bg-background relative">
+      <BackgroundPattern />
+      <header className="flex justify-end px-6 pt-14 pb-2 relative z-10">
         <LanguageToggle />
       </header>
 
