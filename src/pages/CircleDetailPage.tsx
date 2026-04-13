@@ -7,9 +7,29 @@ import BackgroundPattern from "@/components/BackgroundPattern";
 import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Copy, Check, Plus, Users } from "lucide-react";
+import { ChevronLeft, Copy, Check, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+
+type CircleRole = Database["public"]["Enums"]["circle_role"];
+
+type Member = {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  role_label: CircleRole;
+  status: string;
+};
+
+type Memory = {
+  id: string;
+  author_id: string;
+  content: string | null;
+  photo_urls: string[] | null;
+  voice_note_path: string | null;
+  question: string | null;
+  created_at: string;
+};
 
 const ROLE_LABELS: Record<string, Record<CircleRole, string>> = {
   ru: { family: "Семья", friend: "Друг", colleague: "Коллега" },
@@ -33,12 +53,7 @@ const CircleDetailPage = () => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
-
-  // Add memory form
-  const [showAdd, setShowAdd] = useState(false);
-  const [memoryText, setMemoryText] = useState("");
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [showGuided, setShowGuided] = useState(false);
 
   useEffect(() => {
     if (id && user) loadAll();
@@ -66,25 +81,20 @@ const CircleDetailPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSubmitMemory = async () => {
-    if (!memoryText.trim() || !user || !id) return;
-    setSubmitting(true);
+  const handleGuidedSubmit = async (question: string, answer: string) => {
+    if (!user || !id) return;
     const { error } = await supabase.from("circle_memories").insert({
       circle_id: id,
       author_id: user.id,
-      content: memoryText.trim(),
-      question: selectedQuestion,
+      content: answer,
+      question,
     });
     if (error) {
       toast.error(lang === "ru" ? "Ошибка сохранения" : "Failed to save");
     } else {
-      toast.success(lang === "ru" ? "Воспоминание добавлено" : "Memory added");
-      setMemoryText("");
-      setSelectedQuestion(null);
-      setShowAdd(false);
+      toast.success(lang === "ru" ? "Сохранено" : "Saved");
       loadAll();
     }
-    setSubmitting(false);
   };
 
   if (loading) {
@@ -105,175 +115,131 @@ const CircleDetailPage = () => {
 
   const isCreator = circle.creator_id === user?.id;
   const years = [circle.person_birth_year, circle.person_death_year].filter(Boolean).join(" – ");
-  const questions = GUIDED_QUESTIONS[lang as "ru" | "en"] || GUIDED_QUESTIONS.en;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative">
-      <BackgroundPattern />
+    <>
+      {showGuided && (
+        <GuidedQuestionsFlow
+          lang={lang}
+          personName={circle.person_name}
+          onSubmit={handleGuidedSubmit}
+          onClose={() => setShowGuided(false)}
+        />
+      )}
 
-      <header className="flex items-center gap-3 px-6 pt-14 pb-4 relative z-10">
-        <button onClick={() => navigate("/memory-circle")} className="text-muted-foreground hover:text-foreground">
-          <ChevronLeft size={24} />
-        </button>
-        <StaticLogo size={32} />
-      </header>
+      <div className="min-h-screen flex flex-col bg-background relative">
+        <BackgroundPattern />
 
-      <main className="flex-1 px-6 pb-12 relative z-10">
-        <div className="max-w-md mx-auto">
-          {/* Person profile */}
-          <div className="text-center mb-6">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-              <span className="text-2xl font-serif-display text-primary">
-                {circle.person_name.charAt(0)}
-              </span>
-            </div>
-            <h2 className="text-xl font-serif-display font-light text-foreground">{circle.person_name}</h2>
-            {years && <p className="text-sm text-muted-foreground mt-1">{years}</p>}
-            {circle.description && <p className="text-xs text-muted-foreground mt-2">{circle.description}</p>}
-          </div>
+        <header className="flex items-center gap-3 px-6 pt-14 pb-4 relative z-10">
+          <button onClick={() => navigate("/memory-circle")} className="text-muted-foreground hover:text-foreground">
+            <ChevronLeft size={24} />
+          </button>
+          <StaticLogo size={32} />
+        </header>
 
-          {/* Contributors circle visualization */}
-          {members.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-3 text-center">
-                {lang === "ru" ? "Участники" : "Contributors"}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-3">
-                {members.filter(m => m.status === "active").map((member) => (
-                  <div key={member.id} className="flex flex-col items-center gap-1">
-                    <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-sm font-medium text-foreground">
-                      {(member.display_name || "?").charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground max-w-[60px] truncate">
-                      {member.display_name || (lang === "ru" ? "Участник" : "Member")}
-                    </span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[member.role_label]}`}>
-                      {ROLE_LABELS[lang]?.[member.role_label] || member.role_label}
-                    </span>
-                  </div>
-                ))}
+        <main className="flex-1 px-6 pb-12 relative z-10">
+          <div className="max-w-md mx-auto">
+            {/* Person profile */}
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl font-serif-display text-primary">
+                  {circle.person_name.charAt(0)}
+                </span>
               </div>
+              <h2 className="text-xl font-serif-display font-light text-foreground">{circle.person_name}</h2>
+              {years && <p className="text-sm text-muted-foreground mt-1">{years}</p>}
+              {circle.description && <p className="text-xs text-muted-foreground mt-2">{circle.description}</p>}
             </div>
-          )}
 
-          {/* Invite link */}
-          {isCreator && (
-            <Button onClick={copyInviteLink} variant="outline" className="w-full rounded-2xl mb-6">
-              {copied ? <Check size={16} className="mr-2" /> : <Copy size={16} className="mr-2" />}
-              {lang === "ru" ? "Скопировать ссылку-приглашение" : "Copy invite link"}
-            </Button>
-          )}
-
-          {/* Add memory button */}
-          {!showAdd && (
-            <Button onClick={() => setShowAdd(true)} className="w-full rounded-2xl mb-6" size="lg">
-              <Plus size={18} className="mr-2" />
-              {lang === "ru" ? "Добавить воспоминание" : "Add a memory"}
-            </Button>
-          )}
-
-          {/* Add memory form */}
-          {showAdd && (
-            <div className="bg-card border border-border rounded-2xl p-5 mb-6 space-y-4 animate-fade-in">
-              <h3 className="font-semibold text-foreground text-sm">
-                {lang === "ru" ? "Поделитесь воспоминанием" : "Share a memory"}
-              </h3>
-
-              {/* Guided questions */}
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">
-                  {lang === "ru" ? "Выберите вопрос или напишите свободно:" : "Choose a question or write freely:"}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {questions.map((q) => (
-                    <button key={q} onClick={() => setSelectedQuestion(selectedQuestion === q ? null : q)}
-                      className={`text-xs px-3 py-1.5 rounded-xl transition-all ${
-                        selectedQuestion === q
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-secondary text-muted-foreground hover:bg-accent"
-                      }`}>
-                      {q.length > 40 ? q.slice(0, 40) + "…" : q}
-                    </button>
+            {/* Contributors circle visualization */}
+            {members.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold mb-3 text-center">
+                  {lang === "ru" ? "Участники" : "Contributors"}
+                </h3>
+                <div className="flex flex-wrap justify-center gap-3">
+                  {members.filter(m => m.status === "active").map((member) => (
+                    <div key={member.id} className="flex flex-col items-center gap-1">
+                      <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-sm font-medium text-foreground">
+                        {(member.display_name || "?").charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-[10px] text-muted-foreground max-w-[60px] truncate">
+                        {member.display_name || (lang === "ru" ? "Участник" : "Member")}
+                      </span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[member.role_label]}`}>
+                        {ROLE_LABELS[lang]?.[member.role_label] || member.role_label}
+                      </span>
+                    </div>
                   ))}
                 </div>
               </div>
-
-              {selectedQuestion && (
-                <p className="text-sm text-foreground italic bg-accent/50 rounded-xl p-3">
-                  {selectedQuestion}
-                </p>
-              )}
-
-              <Textarea
-                value={memoryText}
-                onChange={(e) => setMemoryText(e.target.value)}
-                placeholder={lang === "ru" ? "Ваше воспоминание..." : "Your memory..."}
-                className="rounded-xl min-h-[120px]"
-              />
-
-              <div className="flex gap-2">
-                <Button onClick={handleSubmitMemory} disabled={!memoryText.trim() || submitting} className="flex-1 rounded-2xl">
-                  <Send size={16} className="mr-2" />
-                  {lang === "ru" ? "Отправить" : "Submit"}
-                </Button>
-                <Button onClick={() => { setShowAdd(false); setSelectedQuestion(null); setMemoryText(""); }}
-                  variant="ghost" className="rounded-2xl">
-                  {lang === "ru" ? "Отмена" : "Cancel"}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Memories list */}
-          <div className="space-y-4">
-            <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-              {lang === "ru" ? "Воспоминания" : "Memories"} ({memories.length})
-            </h3>
-            {memories.length === 0 ? (
-              <p className="text-center text-sm text-muted-foreground py-8">
-                {lang === "ru" ? "Пока нет воспоминаний. Будьте первым!" : "No memories yet. Be the first!"}
-              </p>
-            ) : (
-              memories.map((memory) => {
-                const author = members.find(m => m.user_id === memory.author_id);
-                return (
-                  <div key={memory.id} className="bg-card border border-border rounded-2xl p-4">
-                    {memory.question && (
-                      <p className="text-xs text-primary font-medium mb-2 italic">
-                        {memory.question}
-                      </p>
-                    )}
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                      {memory.content}
-                    </p>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-medium">
-                          {(author?.display_name || "?").charAt(0).toUpperCase()}
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {author?.display_name || (circle.creator_id === memory.author_id
-                            ? (lang === "ru" ? "Создатель" : "Creator") 
-                            : (lang === "ru" ? "Участник" : "Member"))}
-                        </span>
-                        {author && (
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[author.role_label]}`}>
-                            {ROLE_LABELS[lang]?.[author.role_label] || author.role_label}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">
-                        {new Date(memory.created_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
             )}
+
+            {/* Invite link */}
+            {isCreator && (
+              <Button onClick={copyInviteLink} variant="outline" className="w-full rounded-2xl mb-4">
+                {copied ? <Check size={16} className="mr-2" /> : <Copy size={16} className="mr-2" />}
+                {lang === "ru" ? "Скопировать ссылку-приглашение" : "Copy invite link"}
+              </Button>
+            )}
+
+            {/* Guided questions CTA */}
+            <Button onClick={() => setShowGuided(true)} className="w-full rounded-2xl mb-6" size="lg">
+              <Plus size={18} className="mr-2" />
+              {lang === "ru" ? "Ответить на вопросы" : "Answer questions"}
+            </Button>
+
+            {/* Memories list */}
+            <div className="space-y-4">
+              <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                {lang === "ru" ? "Воспоминания" : "Memories"} ({memories.length})
+              </h3>
+              {memories.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-8">
+                  {lang === "ru" ? "Пока нет воспоминаний. Будьте первым!" : "No memories yet. Be the first!"}
+                </p>
+              ) : (
+                memories.map((memory) => {
+                  const author = members.find(m => m.user_id === memory.author_id);
+                  return (
+                    <div key={memory.id} className="bg-card border border-border rounded-2xl p-4">
+                      {memory.question && (
+                        <p className="text-xs text-primary font-medium mb-2 italic">
+                          {memory.question}
+                        </p>
+                      )}
+                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        {memory.content}
+                      </p>
+                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-medium">
+                            {(author?.display_name || "?").charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {author?.display_name || (circle.creator_id === memory.author_id
+                              ? (lang === "ru" ? "Создатель" : "Creator")
+                              : (lang === "ru" ? "Участник" : "Member"))}
+                          </span>
+                          {author && (
+                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[author.role_label]}`}>
+                              {ROLE_LABELS[lang]?.[author.role_label] || author.role_label}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(memory.created_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </>
   );
 };
 
