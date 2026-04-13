@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackgroundPattern from "@/components/BackgroundPattern";
 import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
+import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Copy, Check, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -188,6 +189,14 @@ const CircleDetailPage = () => {
               <Plus size={18} className="mr-2" />
               {lang === "ru" ? "Ответить на вопросы" : "Answer questions"}
             </Button>
+
+            {/* AI Personality Summary */}
+            <PersonalitySummaryCard
+              circleId={id!}
+              personName={circle.person_name}
+              memoriesCount={memories.length}
+              lang={lang}
+            />
 
             {/* Memories list */}
             <div className="space-y-4">
