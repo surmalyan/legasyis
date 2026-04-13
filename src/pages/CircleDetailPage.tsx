@@ -5,51 +5,11 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import BackgroundPattern from "@/components/BackgroundPattern";
 import StaticLogo from "@/components/StaticLogo";
+import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, Copy, Check, Plus, Send, Mic, Image, Users } from "lucide-react";
+import { ChevronLeft, Copy, Check, Plus, Users } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
-
-type CircleRole = Database["public"]["Enums"]["circle_role"];
-
-type Member = {
-  id: string;
-  user_id: string;
-  display_name: string | null;
-  role_label: CircleRole;
-  status: string;
-};
-
-type Memory = {
-  id: string;
-  author_id: string;
-  content: string | null;
-  photo_urls: string[] | null;
-  voice_note_path: string | null;
-  question: string | null;
-  created_at: string;
-};
-
-const GUIDED_QUESTIONS = {
-  ru: [
-    "Какое ваше самое яркое воспоминание об этом человеке?",
-    "Чему он/она вас научил(а)?",
-    "Расскажите смешную историю с его/её участием",
-    "Что бы вы хотели сказать ему/ей сейчас?",
-    "Какая черта характера запомнилась больше всего?",
-    "Опишите момент, когда он/она вас удивил(а)",
-  ],
-  en: [
-    "What is your most vivid memory of this person?",
-    "What did they teach you?",
-    "Share a funny story involving them",
-    "What would you say to them now?",
-    "What character trait do you remember most?",
-    "Describe a moment when they surprised you",
-  ],
-};
 
 const ROLE_LABELS: Record<string, Record<CircleRole, string>> = {
   ru: { family: "Семья", friend: "Друг", colleague: "Коллега" },
