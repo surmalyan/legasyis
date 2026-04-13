@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import BackgroundPattern from "@/components/BackgroundPattern";
 import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
+import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Copy, Check, Plus } from "lucide-react";
 import { toast } from "sonner";
