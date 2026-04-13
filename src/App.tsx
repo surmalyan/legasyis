@@ -19,6 +19,8 @@ import ExportPage from "./pages/ExportPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import VoiceLibraryPage from "./pages/VoiceLibraryPage";
 import LegacyPage from "./pages/LegacyPage";
+import ModeSelectPage from "./pages/ModeSelectPage";
+import MemorialOnboardingPage from "./pages/MemorialOnboardingPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -50,6 +52,8 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/mode-select" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
+              <Route path="/memorial/onboarding" element={<ProtectedRoute><MemorialOnboardingPage /></ProtectedRoute>} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/entry" element={<ProtectedRoute><EntryPage /></ProtectedRoute>} />
               <Route path="/record" element={<ProtectedRoute><RecordPage /></ProtectedRoute>} />
