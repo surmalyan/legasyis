@@ -21,6 +21,9 @@ import VoiceLibraryPage from "./pages/VoiceLibraryPage";
 import LegacyPage from "./pages/LegacyPage";
 import ModeSelectPage from "./pages/ModeSelectPage";
 import MemorialOnboardingPage from "./pages/MemorialOnboardingPage";
+import MemoryCirclePage from "./pages/MemoryCirclePage";
+import CircleDetailPage from "./pages/CircleDetailPage";
+import JoinCirclePage from "./pages/JoinCirclePage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
