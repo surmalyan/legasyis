@@ -52,6 +52,8 @@ const App = () => (
             <Routes>
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/mode-select" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
+              <Route path="/memorial/onboarding" element={<ProtectedRoute><MemorialOnboardingPage /></ProtectedRoute>} />
               <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/entry" element={<ProtectedRoute><EntryPage /></ProtectedRoute>} />
               <Route path="/record" element={<ProtectedRoute><RecordPage /></ProtectedRoute>} />
