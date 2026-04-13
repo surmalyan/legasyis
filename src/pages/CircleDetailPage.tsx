@@ -190,6 +190,14 @@ const CircleDetailPage = () => {
               {lang === "ru" ? "Ответить на вопросы" : "Answer questions"}
             </Button>
 
+            {/* AI Personality Summary */}
+            <PersonalitySummaryCard
+              circleId={id!}
+              personName={circle.person_name}
+              memoriesCount={memories.length}
+              lang={lang}
+            />
+
             {/* Memories list */}
             <div className="space-y-4">
               <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
