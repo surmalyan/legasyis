@@ -68,6 +68,9 @@ const App = () => (
               <Route path="/export" element={<ProtectedRoute><ExportPage /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
               <Route path="/voice-library" element={<ProtectedRoute><VoiceLibraryPage /></ProtectedRoute>} />
+              <Route path="/memory-circle" element={<ProtectedRoute><MemoryCirclePage /></ProtectedRoute>} />
+              <Route path="/memory-circle/:id" element={<ProtectedRoute><CircleDetailPage /></ProtectedRoute>} />
+              <Route path="/memory-circle/join/:code" element={<JoinCirclePage />} />
               <Route path="/legacy/:userId" element={<LegacyPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
