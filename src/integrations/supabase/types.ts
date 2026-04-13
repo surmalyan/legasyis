@@ -14,6 +14,85 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_members: {
+        Row: {
+          circle_id: string
+          display_name: string | null
+          id: string
+          joined_at: string
+          role_label: Database["public"]["Enums"]["circle_role"]
+          status: string
+          user_id: string
+        }
+        Insert: {
+          circle_id: string
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          role_label?: Database["public"]["Enums"]["circle_role"]
+          status?: string
+          user_id: string
+        }
+        Update: {
+          circle_id?: string
+          display_name?: string | null
+          id?: string
+          joined_at?: string
+          role_label?: Database["public"]["Enums"]["circle_role"]
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_members_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "memory_circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      circle_memories: {
+        Row: {
+          author_id: string
+          circle_id: string
+          content: string | null
+          created_at: string
+          id: string
+          photo_urls: string[] | null
+          question: string | null
+          voice_note_path: string | null
+        }
+        Insert: {
+          author_id: string
+          circle_id: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          photo_urls?: string[] | null
+          question?: string | null
+          voice_note_path?: string | null
+        }
+        Update: {
+          author_id?: string
+          circle_id?: string
+          content?: string | null
+          created_at?: string
+          id?: string
+          photo_urls?: string[] | null
+          question?: string | null
+          voice_note_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_memories_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "memory_circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entries: {
         Row: {
           ai_story: string
@@ -123,6 +202,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      memory_circles: {
+        Row: {
+          created_at: string
+          creator_id: string
+          description: string | null
+          id: string
+          invite_code: string
+          person_birth_year: number | null
+          person_death_year: number | null
+          person_name: string
+          person_photo_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          id?: string
+          invite_code?: string
+          person_birth_year?: number | null
+          person_death_year?: number | null
+          person_name: string
+          person_photo_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          id?: string
+          invite_code?: string
+          person_birth_year?: number | null
+          person_death_year?: number | null
+          person_name?: string
+          person_photo_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -316,9 +434,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_circle_member: {
+        Args: { _circle_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
+      circle_role: "family" | "friend" | "colleague"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -447,6 +570,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      circle_role: ["family", "friend", "colleague"],
     },
   },
 } as const
