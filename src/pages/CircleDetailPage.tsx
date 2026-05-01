@@ -63,7 +63,6 @@ const CircleDetailPage = () => {
   const [showGuided, setShowGuided] = useState(false);
   const [view, setView] = useState<"timeline" | "chapters">("chapters");
   const [voiceUrls, setVoiceUrls] = useState<Record<string, string>>({});
-  const [seedQuestion, setSeedQuestion] = useState<string | null>(null);
 
   useEffect(() => {
     if (id && user) loadAll();
@@ -319,10 +318,6 @@ const CircleDetailPage = () => {
             <PhotoQuestionAssistant
               lang={lang}
               personName={circle.person_name}
-              onPickQuestion={(q) => {
-                setSeedQuestion(q);
-                setShowGuided(true);
-              }}
             />
 
             {/* AI Personality Summary */}
