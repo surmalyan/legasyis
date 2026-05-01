@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      circle_invitations: {
+        Row: {
+          circle_id: string
+          created_at: string
+          id: string
+          invitee_email: string
+          inviter_id: string
+          last_reminder_at: string | null
+          personal_message: string | null
+          status: string
+          suggested_role: Database["public"]["Enums"]["circle_role"]
+          updated_at: string
+        }
+        Insert: {
+          circle_id: string
+          created_at?: string
+          id?: string
+          invitee_email: string
+          inviter_id: string
+          last_reminder_at?: string | null
+          personal_message?: string | null
+          status?: string
+          suggested_role?: Database["public"]["Enums"]["circle_role"]
+          updated_at?: string
+        }
+        Update: {
+          circle_id?: string
+          created_at?: string
+          id?: string
+          invitee_email?: string
+          inviter_id?: string
+          last_reminder_at?: string | null
+          personal_message?: string | null
+          status?: string
+          suggested_role?: Database["public"]["Enums"]["circle_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "circle_invitations_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "memory_circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       circle_members: {
         Row: {
           circle_id: string
@@ -248,6 +295,50 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          circle_id: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          circle_id?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          circle_id?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_circle_id_fkey"
+            columns: ["circle_id"]
+            isOneToOne: false
+            referencedRelation: "memory_circles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           advice_to_descendants: string | null
@@ -429,6 +520,15 @@ export type Database = {
       }
     }
     Functions: {
+      create_circle_invitation: {
+        Args: {
+          _circle_id: string
+          _email: string
+          _message: string
+          _role: Database["public"]["Enums"]["circle_role"]
+        }
+        Returns: string
+      }
       has_confirmed_connection: {
         Args: { _other_user_id: string; _user_id: string }
         Returns: boolean
@@ -443,6 +543,10 @@ export type Database = {
       is_circle_member: {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
+      }
+      remind_silent_contributor: {
+        Args: { _circle_id: string; _member_user_id: string }
+        Returns: string
       }
     }
     Enums: {
