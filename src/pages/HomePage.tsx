@@ -371,6 +371,14 @@ const HomePage = () => {
       </main>
 
       <BottomNav />
+
+      <InviteContributorModal
+        open={inviteModal.open}
+        onClose={() => setInviteModal((p) => ({ ...p, open: false }))}
+        inviteCode={inviteModal.code}
+        circleId={inviteModal.circleId}
+        personName={inviteModal.personName}
+      />
     </div>
   );
 };
