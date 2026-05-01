@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Upload, Loader2, X, Eye, HelpCircle } from "lucide-react";
+import { Sparkles, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -20,6 +20,11 @@ const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isRu = lang === "ru";
+
+  const steps = isRu
+    ? ["Загрузите фото", "Получите вопросы", "Ответьте"]
+    : ["Upload a photo", "Get questions", "Answer"];
+  const activeStep = !previewUrl ? 0 : !result ? 1 : 2;
 
   const handleFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -72,20 +77,38 @@ const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => 
   };
 
   return (
-    <div className="bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-4 mb-6">
-      <div className="flex items-start gap-2 mb-3">
-        <Sparkles size={18} className="text-primary flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <h3 className="text-sm font-medium text-foreground">
-            {isRu ? "ИИ-помощник по фото" : "AI photo assistant"}
-          </h3>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            {isRu
-              ? "Загрузите фото — ИИ предложит вопросы для воспоминаний на основе того, что видит."
-              : "Upload a photo — AI will suggest memory-prompting questions based on what it sees."}
-          </p>
-        </div>
+    <div className="bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20 rounded-2xl p-5 mb-6">
+      {/* Title */}
+      <div className="flex items-center gap-2 mb-4">
+        <Sparkles size={20} className="text-primary flex-shrink-0" />
+        <h3 className="text-lg font-serif-display text-foreground">
+          {isRu ? "Вопросы по фото" : "Questions from a photo"}
+        </h3>
       </div>
+
+      {/* Steps */}
+      <ol className="flex items-center gap-2 mb-5">
+        {steps.map((label, i) => (
+          <li key={i} className="flex-1 flex items-center gap-2">
+            <span
+              className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                i <= activeStep
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground"
+              }`}
+            >
+              {i + 1}
+            </span>
+            <span
+              className={`text-xs leading-tight ${
+                i === activeStep ? "text-foreground font-medium" : "text-muted-foreground"
+              }`}
+            >
+              {label}
+            </span>
+          </li>
+        ))}
+      </ol>
 
       <input
         ref={fileInputRef}
@@ -102,64 +125,45 @@ const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => 
         <Button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          variant="outline"
-          className="w-full rounded-xl border-primary/30 text-primary hover:bg-primary/5"
+          size="lg"
+          className="w-full rounded-2xl h-14 text-base"
         >
           {uploading ? (
-            <Loader2 size={16} className="mr-2 animate-spin" />
+            <Loader2 size={20} className="mr-2 animate-spin" />
           ) : (
-            <Upload size={16} className="mr-2" />
+            <ImagePlus size={20} className="mr-2" />
           )}
           {isRu ? "Загрузить фото" : "Upload a photo"}
         </Button>
       )}
 
       {previewUrl && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="relative">
-            <img src={previewUrl} alt="" className="w-full rounded-xl max-h-56 object-cover" />
+            <img src={previewUrl} alt="" className="w-full rounded-2xl max-h-56 object-cover" />
             <button
               onClick={reset}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-background/90 border border-border flex items-center justify-center text-foreground hover:bg-background"
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-background/90 border border-border flex items-center justify-center text-foreground hover:bg-background"
               aria-label="Remove"
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           </div>
 
           {analyzing && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 size={14} className="animate-spin text-primary" />
+            <div className="flex items-center justify-center gap-2 py-3 text-sm text-muted-foreground">
+              <Loader2 size={18} className="animate-spin text-primary" />
               {isRu ? "ИИ изучает фото..." : "AI is studying the photo..."}
             </div>
           )}
 
           {result && (
             <>
-              {result.observations?.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <Eye size={12} className="text-muted-foreground" />
-                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                      {isRu ? "Что видно на фото" : "What's in the photo"}
-                    </span>
-                  </div>
-                  <ul className="text-xs text-muted-foreground space-y-0.5 pl-4 list-disc">
-                    {result.observations.map((o, i) => (
-                      <li key={i}>{o}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
               {result.questions?.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <HelpCircle size={12} className="text-primary" />
-                    <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">
-                      {isRu ? "Предлагаемые вопросы" : "Suggested questions"}
-                    </span>
-                  </div>
+                  <p className="text-sm font-medium text-foreground mb-3">
+                    {isRu ? "Выберите вопрос:" : "Pick a question:"}
+                  </p>
                   <div className="space-y-2">
                     {result.questions.map((q, i) => (
                       <button
@@ -171,7 +175,7 @@ const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => 
                             toast.success(isRu ? "Скопировано" : "Copied");
                           }
                         }}
-                        className="w-full text-left text-sm text-foreground bg-background border border-border hover:border-primary/40 hover:bg-primary/5 rounded-xl px-3 py-2 transition-colors"
+                        className="w-full text-left text-base text-foreground bg-background border border-border hover:border-primary/40 hover:bg-primary/5 rounded-2xl px-4 py-3 transition-colors leading-snug"
                       >
                         {q}
                       </button>
@@ -180,10 +184,10 @@ const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => 
                 </div>
               )}
 
-              <p className="text-[10px] text-muted-foreground italic pt-1 border-t border-border/50">
+              <p className="text-[11px] text-muted-foreground italic text-center pt-2 border-t border-border/50">
                 {isRu
-                  ? "ИИ опирается только на то, что видно на фото. Он не имитирует голос ушедшего."
-                  : "AI relies only on what's visible in the photo. It does not imitate the deceased's voice."}
+                  ? "ИИ опирается только на то, что видно на фото."
+                  : "AI relies only on what's visible in the photo."}
               </p>
             </>
           )}
