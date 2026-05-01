@@ -8,9 +8,10 @@ import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Copy, Check, Plus } from "lucide-react";
+import { ChevronLeft, Copy, Check, Plus, Clock, BookOpen, Mic } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { MEMORIAL_CATEGORIES, MEMORIAL_QUESTIONS, type MemorialCategory } from "@/lib/memorial-questions";
 
 type CircleRole = Database["public"]["Enums"]["circle_role"];
 
@@ -29,6 +30,8 @@ type Memory = {
   photo_urls: string[] | null;
   voice_note_path: string | null;
   question: string | null;
+  category: string | null;
+  life_year: number | null;
   created_at: string;
 };
 
@@ -55,6 +58,8 @@ const CircleDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [showGuided, setShowGuided] = useState(false);
+  const [view, setView] = useState<"timeline" | "chapters">("chapters");
+  const [voiceUrls, setVoiceUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (id && user) loadAll();
@@ -71,6 +76,21 @@ const CircleDetailPage = () => {
     setMembers((membersRes.data as Member[]) || []);
     setMemories((memoriesRes.data as Memory[]) || []);
     setLoading(false);
+
+    // Sign voice URLs
+    const memoriesWithVoice = ((memoriesRes.data as Memory[]) || []).filter((m) => m.voice_note_path);
+    if (memoriesWithVoice.length) {
+      const urls: Record<string, string> = {};
+      await Promise.all(
+        memoriesWithVoice.map(async (m) => {
+          const { data } = await supabase.storage
+            .from("voice-notes")
+            .createSignedUrl(m.voice_note_path!, 3600);
+          if (data?.signedUrl) urls[m.id] = data.signedUrl;
+        })
+      );
+      setVoiceUrls(urls);
+    }
   };
 
   const copyInviteLink = () => {
@@ -82,13 +102,20 @@ const CircleDetailPage = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleGuidedSubmit = async (question: string, answer: string) => {
+  const handleGuidedSubmit = async (
+    question: string,
+    answer: string,
+    extras: { category: MemorialCategory; photoUrls: string[]; voicePath: string | null }
+  ) => {
     if (!user || !id) return;
     const { error } = await supabase.from("circle_memories").insert({
       circle_id: id,
       author_id: user.id,
       content: answer,
       question,
+      category: extras.category,
+      photo_urls: extras.photoUrls.length ? extras.photoUrls : null,
+      voice_note_path: extras.voicePath,
     });
     if (error) {
       toast.error(lang === "ru" ? "Ошибка сохранения" : "Failed to save");
@@ -116,6 +143,71 @@ const CircleDetailPage = () => {
 
   const isCreator = circle.creator_id === user?.id;
   const years = [circle.person_birth_year, circle.person_death_year].filter(Boolean).join(" – ");
+  const categories = MEMORIAL_CATEGORIES[lang] || MEMORIAL_CATEGORIES.en;
+
+  const renderMemoryCard = (memory: Memory) => {
+    const author = members.find((m) => m.user_id === memory.author_id);
+    return (
+      <div key={memory.id} className="bg-card border border-border rounded-2xl p-4">
+        {memory.question && (
+          <p className="text-xs text-primary font-medium mb-2 italic">{memory.question}</p>
+        )}
+        {memory.content && (
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{memory.content}</p>
+        )}
+        {memory.photo_urls && memory.photo_urls.length > 0 && (
+          <div className={`mt-3 grid gap-2 ${memory.photo_urls.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+            {memory.photo_urls.map((url, i) => (
+              <img key={i} src={url} alt="" className="w-full rounded-xl object-cover max-h-64" />
+            ))}
+          </div>
+        )}
+        {memory.voice_note_path && voiceUrls[memory.id] && (
+          <div className="mt-3 flex items-center gap-2 bg-primary/5 rounded-xl px-3 py-2">
+            <Mic size={14} className="text-primary flex-shrink-0" />
+            <audio controls src={voiceUrls[memory.id]} className="flex-1 h-8" />
+          </div>
+        )}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-medium">
+              {(author?.display_name || "?").charAt(0).toUpperCase()}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {author?.display_name ||
+                (circle.creator_id === memory.author_id
+                  ? lang === "ru" ? "Создатель" : "Creator"
+                  : lang === "ru" ? "Участник" : "Member")}
+            </span>
+            {author && (
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[author.role_label]}`}>
+                {ROLE_LABELS[lang]?.[author.role_label] || author.role_label}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground">
+            {new Date(memory.created_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  // Group memories by category for chapters view
+  const memoriesByCategory: Record<string, Memory[]> = {};
+  memories.forEach((m) => {
+    // derive category from question if not stored (legacy entries)
+    let cat = m.category;
+    if (!cat && m.question) {
+      const q = MEMORIAL_QUESTIONS.find(
+        (q) => q.text.ru === m.question || q.text.en === m.question
+      );
+      cat = q?.category || "memories";
+    }
+    cat = cat || "memories";
+    if (!memoriesByCategory[cat]) memoriesByCategory[cat] = [];
+    memoriesByCategory[cat].push(m);
+  });
 
   return (
     <>
@@ -198,53 +290,68 @@ const CircleDetailPage = () => {
               lang={lang}
             />
 
-            {/* Memories list */}
-            <div className="space-y-4">
+            {/* Book layout: chapters / timeline switcher */}
+            <div className="flex items-center justify-between mb-4">
               <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                {lang === "ru" ? "Воспоминания" : "Memories"} ({memories.length})
+                {lang === "ru" ? "Книга" : "The Book"} ({memories.length})
               </h3>
-              {memories.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  {lang === "ru" ? "Пока нет воспоминаний. Будьте первым!" : "No memories yet. Be the first!"}
-                </p>
-              ) : (
-                memories.map((memory) => {
-                  const author = members.find(m => m.user_id === memory.author_id);
+              <div className="flex bg-secondary rounded-xl p-1">
+                <button
+                  onClick={() => setView("chapters")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                    view === "chapters" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  <BookOpen size={12} />
+                  {lang === "ru" ? "Главы" : "Chapters"}
+                </button>
+                <button
+                  onClick={() => setView("timeline")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                    view === "timeline" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  <Clock size={12} />
+                  {lang === "ru" ? "Хронология" : "Timeline"}
+                </button>
+              </div>
+            </div>
+
+            {memories.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                {lang === "ru" ? "Пока нет воспоминаний. Будьте первым!" : "No memories yet. Be the first!"}
+              </p>
+            ) : view === "chapters" ? (
+              <div className="space-y-6">
+                {(Object.keys(categories) as MemorialCategory[]).map((catKey) => {
+                  const catMems = memoriesByCategory[catKey] || [];
+                  if (catMems.length === 0) return null;
+                  const catInfo = categories[catKey];
                   return (
-                    <div key={memory.id} className="bg-card border border-border rounded-2xl p-4">
-                      {memory.question && (
-                        <p className="text-xs text-primary font-medium mb-2 italic">
-                          {memory.question}
-                        </p>
-                      )}
-                      <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
-                        {memory.content}
-                      </p>
-                      <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-[10px] font-medium">
-                            {(author?.display_name || "?").charAt(0).toUpperCase()}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {author?.display_name || (circle.creator_id === memory.author_id
-                              ? (lang === "ru" ? "Создатель" : "Creator")
-                              : (lang === "ru" ? "Участник" : "Member"))}
-                          </span>
-                          {author && (
-                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[author.role_label]}`}>
-                              {ROLE_LABELS[lang]?.[author.role_label] || author.role_label}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(memory.created_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US")}
-                        </span>
+                    <div key={catKey}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">{catInfo.emoji}</span>
+                        <h4 className="text-sm font-serif-display text-foreground">{catInfo.label}</h4>
+                        <span className="text-[10px] text-muted-foreground">({catMems.length})</span>
                       </div>
+                      <div className="space-y-3">{catMems.map(renderMemoryCard)}</div>
                     </div>
                   );
-                })
-              )}
-            </div>
+                })}
+              </div>
+            ) : (
+              <div className="relative space-y-4 pl-5 border-l-2 border-border">
+                {memories
+                  .slice()
+                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .map((memory) => (
+                    <div key={memory.id} className="relative">
+                      <div className="absolute -left-[26px] top-3 w-3 h-3 rounded-full bg-primary border-2 border-background" />
+                      {renderMemoryCard(memory)}
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         </main>
       </div>
