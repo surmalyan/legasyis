@@ -6,23 +6,78 @@ import { useI18n } from "@/lib/i18n";
 import { getTodayQuestion, getRandomQuestion, chapterLabels, depthLabels } from "@/lib/diary-store";
 import { useSubscription } from "@/hooks/use-subscription";
 import { scheduleNotification } from "@/lib/notifications";
-import { PenLine, Mic, RefreshCw, Settings, Sparkles } from "lucide-react";
+import { PenLine, Mic, RefreshCw, Settings, Sparkles, Plus, UserPlus, Heart, ChevronRight } from "lucide-react";
 import NotificationBanner from "@/components/NotificationBanner";
 import ChapterProgress from "@/components/ChapterProgress";
 import BottomNav from "@/components/BottomNav";
 import type { QuestionDepth } from "@/lib/questions";
+import { useAuth } from "@/lib/auth-context";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { MEMORIAL_QUESTIONS } from "@/lib/memorial-questions";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedDepth, setSelectedDepth] = useState<QuestionDepth | undefined>(undefined);
   const [questionData, setQuestionData] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed, isTrial, trialDaysLeft } = useSubscription();
+  const [memorialBooks, setMemorialBooks] = useState<Array<{
+    id: string;
+    person_name: string;
+    person_birth_year: number | null;
+    person_death_year: number | null;
+    invite_code: string;
+    creator_id: string;
+    memoriesCount: number;
+    contributorsCount: number;
+  }>>([]);
+  const [memorialLoading, setMemorialLoading] = useState(true);
+  const TOTAL_QUESTIONS = MEMORIAL_QUESTIONS.length;
 
   useEffect(() => {
     scheduleNotification(lang);
   }, [lang]);
+
+  useEffect(() => {
+    if (user) loadMemorialBooks();
+  }, [user]);
+
+  const loadMemorialBooks = async () => {
+    setMemorialLoading(true);
+    const { data: circles } = await supabase
+      .from("memory_circles")
+      .select("id, person_name, person_birth_year, person_death_year, invite_code, creator_id")
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    if (!circles || circles.length === 0) {
+      setMemorialBooks([]);
+      setMemorialLoading(false);
+      return;
+    }
+
+    const enriched = await Promise.all(
+      circles.map(async (c) => {
+        const [{ count: mc }, { count: cc }] = await Promise.all([
+          supabase.from("circle_memories").select("*", { count: "exact", head: true }).eq("circle_id", c.id),
+          supabase.from("circle_members").select("*", { count: "exact", head: true }).eq("circle_id", c.id).eq("status", "active"),
+        ]);
+        return { ...c, memoriesCount: mc || 0, contributorsCount: (cc || 0) + 1 };
+      })
+    );
+    setMemorialBooks(enriched);
+    setMemorialLoading(false);
+  };
+
+  const copyInviteLink = (code: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const link = `${window.location.origin}/memory-circle/join/${code}`;
+    navigator.clipboard.writeText(link);
+    toast.success(lang === "ru" ? "Ссылка-приглашение скопирована" : "Invite link copied");
+  };
 
   const handleNewQuestion = useCallback(() => {
     setIsSwapping(true);
@@ -62,7 +117,7 @@ const HomePage = () => {
         </button>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6 pb-28">
+      <main className="flex-1 flex flex-col items-center px-6 pb-28 pt-2">
         <div className="w-full max-w-md">
           <NotificationBanner />
 
@@ -88,6 +143,148 @@ const HomePage = () => {
               </button>
             </div>
           )}
+
+          {/* === КНИГА ПАМЯТИ — ЦЕНТРАЛЬНЫЙ БЛОК === */}
+          <section className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Heart size={14} className="text-primary" fill="currentColor" />
+                <h2 className="text-[11px] uppercase tracking-[0.2em] text-primary font-semibold">
+                  {lang === "ru" ? "Книга Памяти" : "Memorial Heritage"}
+                </h2>
+              </div>
+              {memorialBooks.length > 0 && (
+                <button onClick={() => navigate("/memory-circle")}
+                  className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1">
+                  {lang === "ru" ? "Все" : "All"} <ChevronRight size={12} />
+                </button>
+              )}
+            </div>
+
+            {memorialLoading ? (
+              <div className="bg-card border border-border rounded-3xl p-8 text-center text-sm text-muted-foreground">
+                {lang === "ru" ? "Загрузка..." : "Loading..."}
+              </div>
+            ) : memorialBooks.length === 0 ? (
+              <button
+                onClick={() => navigate("/memorial/onboarding")}
+                className="w-full bg-gradient-to-br from-primary/10 via-card to-card border border-primary/20 rounded-3xl p-6 text-left hover:shadow-md transition-all active:scale-[0.98] group"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                    <Heart size={22} className="text-primary" fill="currentColor" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-serif-display text-lg text-foreground leading-tight mb-1">
+                      {lang === "ru" ? "Сохраните память о близком" : "Preserve the memory of someone dear"}
+                    </p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {lang === "ru"
+                        ? "Соберите истории, фото и голоса близких в одну книгу памяти"
+                        : "Collect stories, photos and voices from loved ones into one heritage book"}
+                    </p>
+                    <div className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary">
+                      <Plus size={12} />
+                      {lang === "ru" ? "Создать Книгу Памяти" : "Create Memorial Book"}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ) : (
+              <div className="space-y-3">
+                {memorialBooks.map((book) => {
+                  const years = [book.person_birth_year, book.person_death_year].filter(Boolean).join(" – ");
+                  const progress = Math.min(100, Math.round((book.memoriesCount / TOTAL_QUESTIONS) * 100));
+                  return (
+                    <div
+                      key={book.id}
+                      className="bg-card border border-border rounded-3xl p-5 hover:border-primary/30 hover:shadow-md transition-all"
+                    >
+                      <button
+                        onClick={() => navigate(`/memory-circle/${book.id}`)}
+                        className="w-full text-left"
+                      >
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg font-serif-display text-primary">
+                              {book.person_name.charAt(0)}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-serif-display text-base text-foreground truncate">
+                              {book.person_name}
+                            </p>
+                            {years && <p className="text-[11px] text-muted-foreground">{years}</p>}
+                          </div>
+                          <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" />
+                        </div>
+
+                        {/* Mosaic progress */}
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                              {lang === "ru" ? "Мозаика памяти" : "Memory mosaic"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {book.memoriesCount}/{TOTAL_QUESTIONS}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-[repeat(25,1fr)] gap-[2px]">
+                            {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => (
+                              <div
+                                key={i}
+                                className={`aspect-square rounded-[2px] transition-colors ${
+                                  i < book.memoriesCount
+                                    ? "bg-primary"
+                                    : "bg-secondary"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <div className="mt-1.5 text-[10px] text-muted-foreground">
+                            {progress}% {lang === "ru" ? "наполнено" : "complete"}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                          <span>
+                            👥 {book.contributorsCount} {lang === "ru" ? "соавтор(ов)" : "contributor(s)"}
+                          </span>
+                          <span>
+                            💭 {book.memoriesCount} {lang === "ru" ? "историй" : "stories"}
+                          </span>
+                        </div>
+                      </button>
+
+                      <button
+                        onClick={(e) => copyInviteLink(book.invite_code, e)}
+                        className="w-full mt-4 flex items-center justify-center gap-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-2xl py-2.5 text-xs font-semibold transition-colors"
+                      >
+                        <UserPlus size={14} />
+                        {lang === "ru" ? "Пригласить соавтора" : "Invite contributor"}
+                      </button>
+                    </div>
+                  );
+                })}
+
+                <button
+                  onClick={() => navigate("/memorial/onboarding")}
+                  className="w-full flex items-center justify-center gap-2 border border-dashed border-border hover:border-primary/40 hover:bg-primary/5 rounded-2xl py-3 text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Plus size={14} />
+                  {lang === "ru" ? "Новая Книга Памяти" : "New Memorial Book"}
+                </button>
+              </div>
+            )}
+          </section>
+
+          {/* === ЛИЧНЫЙ ДНЕВНИК — ВТОРИЧНЫЙ БЛОК === */}
+          <div className="flex items-center gap-2 mb-3">
+            <PenLine size={14} className="text-muted-foreground" />
+            <h2 className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
+              {lang === "ru" ? "Ваша история" : "Your story"}
+            </h2>
+          </div>
 
           <p className="text-sm text-muted-foreground font-medium text-center mb-1">
             {new Date().toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US", {
