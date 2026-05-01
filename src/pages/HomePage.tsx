@@ -10,6 +10,8 @@ import { PenLine, Mic, RefreshCw, Settings, Sparkles, Plus, UserPlus, Heart, Che
 import NotificationBanner from "@/components/NotificationBanner";
 import ChapterProgress from "@/components/ChapterProgress";
 import BottomNav from "@/components/BottomNav";
+import NotificationsBell from "@/components/notifications/NotificationsBell";
+import InviteContributorModal from "@/components/invite/InviteContributorModal";
 import type { QuestionDepth } from "@/lib/questions";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,6 +38,9 @@ const HomePage = () => {
   }>>([]);
   const [memorialLoading, setMemorialLoading] = useState(true);
   const TOTAL_QUESTIONS = MEMORIAL_QUESTIONS.length;
+  const [inviteModal, setInviteModal] = useState<{
+    open: boolean; code: string; circleId: string; personName: string;
+  }>({ open: false, code: "", circleId: "", personName: "" });
 
   useEffect(() => {
     scheduleNotification(lang);
@@ -72,11 +77,9 @@ const HomePage = () => {
     setMemorialLoading(false);
   };
 
-  const copyInviteLink = (code: string, e: React.MouseEvent) => {
+  const openInvite = (book: { invite_code: string; id: string; person_name: string }, e: React.MouseEvent) => {
     e.stopPropagation();
-    const link = `${window.location.origin}/memory-circle/join/${code}`;
-    navigator.clipboard.writeText(link);
-    toast.success(lang === "ru" ? "Ссылка-приглашение скопирована" : "Invite link copied");
+    setInviteModal({ open: true, code: book.invite_code, circleId: book.id, personName: book.person_name });
   };
 
   const handleNewQuestion = useCallback(() => {
@@ -110,7 +113,7 @@ const HomePage = () => {
     <div className="min-h-screen flex flex-col bg-background relative">
       <BackgroundPattern />
       <header className="flex items-center justify-between px-6 pt-14 pb-2 relative z-10">
-        <div className="w-10" />
+        <NotificationsBell />
         <AnimatedLogo size={80} className="logo-entrance" />
         <button onClick={() => navigate("/settings")} className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
           <Settings size={22} />
@@ -257,7 +260,7 @@ const HomePage = () => {
                       </button>
 
                       <button
-                        onClick={(e) => copyInviteLink(book.invite_code, e)}
+                        onClick={(e) => openInvite(book, e)}
                         className="w-full mt-4 flex items-center justify-center gap-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-2xl py-2.5 text-xs font-semibold transition-colors"
                       >
                         <UserPlus size={14} />
@@ -368,6 +371,14 @@ const HomePage = () => {
       </main>
 
       <BottomNav />
+
+      <InviteContributorModal
+        open={inviteModal.open}
+        onClose={() => setInviteModal((p) => ({ ...p, open: false }))}
+        inviteCode={inviteModal.code}
+        circleId={inviteModal.circleId}
+        personName={inviteModal.personName}
+      />
     </div>
   );
 };
