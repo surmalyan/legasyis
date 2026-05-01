@@ -55,30 +55,36 @@ export type Database = {
       circle_memories: {
         Row: {
           author_id: string
+          category: string | null
           circle_id: string
           content: string | null
           created_at: string
           id: string
+          life_year: number | null
           photo_urls: string[] | null
           question: string | null
           voice_note_path: string | null
         }
         Insert: {
           author_id: string
+          category?: string | null
           circle_id: string
           content?: string | null
           created_at?: string
           id?: string
+          life_year?: number | null
           photo_urls?: string[] | null
           question?: string | null
           voice_note_path?: string | null
         }
         Update: {
           author_id?: string
+          category?: string | null
           circle_id?: string
           content?: string | null
           created_at?: string
           id?: string
+          life_year?: number | null
           photo_urls?: string[] | null
           question?: string | null
           voice_note_path?: string | null
