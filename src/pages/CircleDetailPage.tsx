@@ -7,8 +7,9 @@ import BackgroundPattern from "@/components/BackgroundPattern";
 import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
+import InviteContributorModal from "@/components/invite/InviteContributorModal";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Copy, Check, Plus, Clock, BookOpen, Mic } from "lucide-react";
+import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { MEMORIAL_CATEGORIES, MEMORIAL_QUESTIONS, type MemorialCategory } from "@/lib/memorial-questions";
@@ -56,7 +57,8 @@ const CircleDetailPage = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [reminding, setReminding] = useState<string | null>(null);
   const [showGuided, setShowGuided] = useState(false);
   const [view, setView] = useState<"timeline" | "chapters">("chapters");
   const [voiceUrls, setVoiceUrls] = useState<Record<string, string>>({});
@@ -93,13 +95,19 @@ const CircleDetailPage = () => {
     }
   };
 
-  const copyInviteLink = () => {
-    if (!circle) return;
-    const link = `${window.location.origin}/memory-circle/join/${circle.invite_code}`;
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast.success(lang === "ru" ? "Ссылка скопирована" : "Link copied");
-    setTimeout(() => setCopied(false), 2000);
+  const sendReminder = async (memberUserId: string) => {
+    if (!id) return;
+    setReminding(memberUserId);
+    const { error } = await supabase.rpc("remind_silent_contributor", {
+      _circle_id: id,
+      _member_user_id: memberUserId,
+    });
+    setReminding(null);
+    if (error) {
+      toast.error(lang === "ru" ? "Не удалось напомнить" : "Could not remind");
+    } else {
+      toast.success(lang === "ru" ? "Напоминание отправлено" : "Reminder sent");
+    }
   };
 
   const handleGuidedSubmit = async (
@@ -144,6 +152,12 @@ const CircleDetailPage = () => {
   const isCreator = circle.creator_id === user?.id;
   const years = [circle.person_birth_year, circle.person_death_year].filter(Boolean).join(" – ");
   const categories = MEMORIAL_CATEGORIES[lang] || MEMORIAL_CATEGORIES.en;
+
+  // Map memories count per member
+  const memoriesByAuthor: Record<string, number> = {};
+  memories.forEach((m) => {
+    memoriesByAuthor[m.author_id] = (memoriesByAuthor[m.author_id] || 0) + 1;
+  });
 
   const renderMemoryCard = (memory: Memory) => {
     const author = members.find((m) => m.user_id === memory.author_id);
@@ -253,8 +267,13 @@ const CircleDetailPage = () => {
                 <div className="flex flex-wrap justify-center gap-3">
                   {members.filter(m => m.status === "active").map((member) => (
                     <div key={member.id} className="flex flex-col items-center gap-1">
-                      <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-sm font-medium text-foreground">
-                        {(member.display_name || "?").charAt(0).toUpperCase()}
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center text-sm font-medium text-foreground">
+                          {(member.display_name || "?").charAt(0).toUpperCase()}
+                        </div>
+                        {(memoriesByAuthor[member.user_id] || 0) === 0 && (
+                          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 border-2 border-background" title={lang === "ru" ? "Ещё не ответил" : "Hasn't answered yet"} />
+                        )}
                       </div>
                       <span className="text-[10px] text-muted-foreground max-w-[60px] truncate">
                         {member.display_name || (lang === "ru" ? "Участник" : "Member")}
@@ -262,17 +281,29 @@ const CircleDetailPage = () => {
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${ROLE_COLORS[member.role_label]}`}>
                         {ROLE_LABELS[lang]?.[member.role_label] || member.role_label}
                       </span>
+                      {isCreator && (memoriesByAuthor[member.user_id] || 0) === 0 && (
+                        <button
+                          onClick={() => sendReminder(member.user_id)}
+                          disabled={reminding === member.user_id}
+                          className="text-[9px] text-primary hover:underline flex items-center gap-0.5 disabled:opacity-50"
+                        >
+                          <Bell size={9} />
+                          {reminding === member.user_id
+                            ? (lang === "ru" ? "..." : "...")
+                            : (lang === "ru" ? "Напомнить" : "Remind")}
+                        </button>
+                      )}
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Invite link */}
+            {/* Invite contributor */}
             {isCreator && (
-              <Button onClick={copyInviteLink} variant="outline" className="w-full rounded-2xl mb-4">
-                {copied ? <Check size={16} className="mr-2" /> : <Copy size={16} className="mr-2" />}
-                {lang === "ru" ? "Скопировать ссылку-приглашение" : "Copy invite link"}
+              <Button onClick={() => setInviteOpen(true)} variant="outline" className="w-full rounded-2xl mb-4 border-primary/30 text-primary hover:bg-primary/5">
+                <UserPlus size={16} className="mr-2" />
+                {lang === "ru" ? "Пригласить соавтора" : "Invite contributor"}
               </Button>
             )}
 
@@ -354,6 +385,16 @@ const CircleDetailPage = () => {
             )}
           </div>
         </main>
+
+        {circle && (
+          <InviteContributorModal
+            open={inviteOpen}
+            onClose={() => setInviteOpen(false)}
+            inviteCode={circle.invite_code}
+            circleId={circle.id}
+            personName={circle.person_name}
+          />
+        )}
       </div>
     </>
   );
