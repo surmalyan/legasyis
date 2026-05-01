@@ -260,7 +260,7 @@ const HomePage = () => {
                       </button>
 
                       <button
-                        onClick={(e) => copyInviteLink(book.invite_code, e)}
+                        onClick={(e) => openInvite(book, e)}
                         className="w-full mt-4 flex items-center justify-center gap-2 bg-primary/5 hover:bg-primary/10 text-primary rounded-2xl py-2.5 text-xs font-semibold transition-colors"
                       >
                         <UserPlus size={14} />
