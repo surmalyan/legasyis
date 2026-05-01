@@ -7,6 +7,7 @@ import BackgroundPattern from "@/components/BackgroundPattern";
 import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
+import PhotoQuestionAssistant from "@/components/PhotoQuestionAssistant";
 import InviteContributorModal from "@/components/invite/InviteContributorModal";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell } from "lucide-react";
@@ -62,6 +63,7 @@ const CircleDetailPage = () => {
   const [showGuided, setShowGuided] = useState(false);
   const [view, setView] = useState<"timeline" | "chapters">("chapters");
   const [voiceUrls, setVoiceUrls] = useState<Record<string, string>>({});
+  const [seedQuestion, setSeedQuestion] = useState<string | null>(null);
 
   useEffect(() => {
     if (id && user) loadAll();
@@ -312,6 +314,16 @@ const CircleDetailPage = () => {
               <Plus size={18} className="mr-2" />
               {lang === "ru" ? "Ответить на вопросы" : "Answer questions"}
             </Button>
+
+            {/* AI Photo Assistant — suggests questions based on uploaded photo */}
+            <PhotoQuestionAssistant
+              lang={lang}
+              personName={circle.person_name}
+              onPickQuestion={(q) => {
+                setSeedQuestion(q);
+                setShowGuided(true);
+              }}
+            />
 
             {/* AI Personality Summary */}
             <PersonalitySummaryCard
