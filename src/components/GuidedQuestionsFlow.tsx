@@ -1,28 +1,44 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Send, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Send, X, Image as ImageIcon, Mic, Square, Trash2, Loader2 } from "lucide-react";
 import {
   MEMORIAL_QUESTIONS,
   MEMORIAL_CATEGORIES,
   type MemorialCategory,
   type MemorialQuestion,
 } from "@/lib/memorial-questions";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { toast } from "sonner";
 
 type Props = {
   lang: string;
   personName: string;
-  onSubmit: (question: string, answer: string) => Promise<void>;
+  onSubmit: (
+    question: string,
+    answer: string,
+    extras: { category: MemorialCategory; photoUrls: string[]; voicePath: string | null }
+  ) => Promise<void>;
   onClose: () => void;
 };
 
 const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => {
+  const { user } = useAuth();
   const [phase, setPhase] = useState<"categories" | "questions">("categories");
   const [selectedCategory, setSelectedCategory] = useState<MemorialCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [answered, setAnswered] = useState<Set<string>>(new Set());
+  const [photoUrls, setPhotoUrls] = useState<string[]>([]);
+  const [voicePath, setVoicePath] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [uploadingVoice, setUploadingVoice] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const categories = MEMORIAL_CATEGORIES[lang] || MEMORIAL_CATEGORIES.en;
   const categoryQuestions = selectedCategory
@@ -30,20 +46,97 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
     : [];
   const currentQ = categoryQuestions[currentIndex];
 
+  const resetExtras = () => {
+    setPhotoUrls([]);
+    setVoicePath(null);
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length || !user) return;
+    setUploadingPhoto(true);
+    try {
+      const uploaded: string[] = [];
+      for (const file of files) {
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(lang === "ru" ? "Файл больше 10 МБ" : "File over 10 MB");
+          continue;
+        }
+        const ext = file.name.split(".").pop() || "jpg";
+        const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("memory-photos").upload(path, file, {
+          contentType: file.type,
+        });
+        if (error) {
+          toast.error(lang === "ru" ? "Ошибка загрузки фото" : "Photo upload failed");
+          continue;
+        }
+        const { data } = supabase.storage.from("memory-photos").getPublicUrl(path);
+        uploaded.push(data.publicUrl);
+      }
+      setPhotoUrls((prev) => [...prev, ...uploaded]);
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      mr.ondataavailable = (ev) => audioChunksRef.current.push(ev.data);
+      mr.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        if (!user) return;
+        setUploadingVoice(true);
+        const path = `${user.id}/circle-${Date.now()}.webm`;
+        const { error } = await supabase.storage.from("voice-notes").upload(path, blob, {
+          contentType: "audio/webm",
+        });
+        setUploadingVoice(false);
+        if (error) {
+          toast.error(lang === "ru" ? "Ошибка загрузки голоса" : "Voice upload failed");
+          return;
+        }
+        setVoicePath(path);
+      };
+      mediaRecorderRef.current = mr;
+      mr.start();
+      setRecording(true);
+    } catch {
+      toast.error(lang === "ru" ? "Нет доступа к микрофону" : "Microphone access denied");
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setRecording(false);
+  };
+
   const handleSelectCategory = (cat: MemorialCategory) => {
     setSelectedCategory(cat);
     setCurrentIndex(0);
     setAnswer("");
+    resetExtras();
     setPhase("questions");
   };
 
   const handleSubmitAnswer = async () => {
-    if (!answer.trim() || !currentQ) return;
+    if (!currentQ) return;
+    if (!answer.trim() && photoUrls.length === 0 && !voicePath) return;
     setSubmitting(true);
     const questionText = currentQ.text[lang as "ru" | "en"] || currentQ.text.en;
-    await onSubmit(questionText, answer.trim());
+    await onSubmit(questionText, answer.trim(), {
+      category: currentQ.category,
+      photoUrls,
+      voicePath,
+    });
     setAnswered((prev) => new Set(prev).add(currentQ.id));
     setAnswer("");
+    resetExtras();
     // Auto-advance to next unanswered
     const nextIdx = categoryQuestions.findIndex(
       (q, i) => i > currentIndex && !answered.has(q.id)
@@ -59,9 +152,10 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
   };
 
   const handleSkip = () => {
+    resetExtras();
+    setAnswer("");
     if (currentIndex < categoryQuestions.length - 1) {
       setCurrentIndex(currentIndex + 1);
-      setAnswer("");
     } else {
       setPhase("categories");
       setSelectedCategory(null);
@@ -183,10 +277,86 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
                 className="rounded-2xl min-h-[120px] text-base resize-none border-border focus:border-primary"
                 autoFocus
               />
+
+              {/* Photo previews */}
+              {photoUrls.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {photoUrls.map((url, i) => (
+                    <div key={i} className="relative flex-shrink-0">
+                      <img src={url} alt="" className="w-16 h-16 rounded-xl object-cover border border-border" />
+                      <button
+                        onClick={() => setPhotoUrls((p) => p.filter((_, idx) => idx !== i))}
+                        className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-foreground text-background flex items-center justify-center"
+                      >
+                        <X size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Voice indicator */}
+              {voicePath && (
+                <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
+                  <span className="text-xs text-primary flex items-center gap-2">
+                    <Mic size={12} /> {lang === "ru" ? "Голос записан" : "Voice recorded"}
+                  </span>
+                  <button onClick={() => setVoicePath(null)} className="text-muted-foreground hover:text-foreground">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* Media controls */}
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingPhoto}
+                  className="flex-1 rounded-xl"
+                >
+                  {uploadingPhoto ? <Loader2 size={14} className="animate-spin" /> : <ImageIcon size={14} />}
+                  <span className="ml-1.5 text-xs">
+                    {lang === "ru" ? "Фото" : "Photo"}
+                  </span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={recording ? "destructive" : "outline"}
+                  size="sm"
+                  onClick={recording ? stopRecording : startRecording}
+                  disabled={uploadingVoice}
+                  className="flex-1 rounded-xl"
+                >
+                  {uploadingVoice ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : recording ? (
+                    <Square size={14} />
+                  ) : (
+                    <Mic size={14} />
+                  )}
+                  <span className="ml-1.5 text-xs">
+                    {recording
+                      ? (lang === "ru" ? "Стоп" : "Stop")
+                      : (lang === "ru" ? "Голос" : "Voice")}
+                  </span>
+                </Button>
+              </div>
+
               <div className="flex gap-3">
                 <Button
                   onClick={handleSubmitAnswer}
-                  disabled={!answer.trim() || submitting}
+                  disabled={(!answer.trim() && photoUrls.length === 0 && !voicePath) || submitting}
                   className="flex-1 rounded-2xl py-5"
                   size="lg"
                 >
