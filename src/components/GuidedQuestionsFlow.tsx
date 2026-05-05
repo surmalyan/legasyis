@@ -293,6 +293,44 @@ const GuidedQuestionsFlow = ({ lang, personName, personBirthYear, onSubmit, onCl
                 autoFocus
               />
 
+              {/* Title */}
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={lang === "ru" ? "Название истории (необязательно)" : "Story title (optional)"}
+                className="rounded-2xl text-sm border-border focus:border-primary"
+                maxLength={80}
+              />
+
+              {/* Life period */}
+              <div>
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">
+                  {lang === "ru" ? "Период жизни" : "Life period"}
+                </p>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                  {LIFE_PERIODS.filter((p) => p.key !== "unknown").map((p) => {
+                    const yr = getYearRange(p, personBirthYear);
+                    const active = lifePeriod === p.key;
+                    return (
+                      <button
+                        key={p.key}
+                        onClick={() => setLifePeriod(active ? "" : p.key)}
+                        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card text-foreground border-border hover:border-primary/40"
+                        }`}
+                        title={yr || p.description[lang as "ru" | "en"]}
+                      >
+                        <span>{p.emoji}</span>
+                        <span>{p.label[lang as "ru" | "en"]}</span>
+                        {yr && <span className="opacity-70">· {yr}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Photo previews */}
               {photoUrls.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto pb-1">
