@@ -10,11 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Copy, Check, Mail, Share2, MessageCircle, Send } from "lucide-react";
+import { Copy, Check, Mail, Share2, MessageCircle, Send, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
+import { MEMORIAL_CATEGORIES, MEMORIAL_QUESTIONS, type MemorialCategory } from "@/lib/memorial-questions";
 
 type CircleRole = Database["public"]["Enums"]["circle_role"];
 
@@ -28,19 +29,34 @@ type Props = {
 
 const InviteContributorModal = ({ open, onClose, inviteCode, circleId, personName }: Props) => {
   const { lang } = useI18n();
-  const link = `${window.location.origin}/memory-circle/join/${inviteCode}`;
+  const baseLink = `${window.location.origin}/memory-circle/join/${inviteCode}`;
+  const [promptCategory, setPromptCategory] = useState<MemorialCategory | "">("");
+  const link = promptCategory ? `${baseLink}?topic=${promptCategory}` : baseLink;
   const [copied, setCopied] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<CircleRole>("friend");
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
-  const inviteText = lang === "ru"
-    ? `Я создаю Книгу Памяти о ${personName}. Помогите мне собрать воспоминания: ${link}`
-    : `I'm creating a Book of Memory for ${personName}. Help me collect memories: ${link}`;
+  const cats = MEMORIAL_CATEGORIES[lang] || MEMORIAL_CATEGORIES.en;
+  const promptCount = promptCategory
+    ? MEMORIAL_QUESTIONS.filter((q) => q.category === promptCategory).length
+    : 0;
+
+  const inviteText = (() => {
+    if (promptCategory) {
+      const topic = cats[promptCategory].label.toLowerCase();
+      return lang === "ru"
+        ? `Помогите вспомнить ${personName}. Я подобрал(а) ${promptCount} наводящих вопросов на тему «${topic}», которые помогут углубиться в детали: ${link}`
+        : `Help me remember ${personName}. I picked ${promptCount} guiding questions about "${topic}" to help recall the details: ${link}`;
+    }
+    return lang === "ru"
+      ? `Я создаю Книгу Памяти о ${personName}. Помогите мне собрать воспоминания: ${link}`
+      : `I'm creating a Book of Memory for ${personName}. Help me collect memories: ${link}`;
+  })();
 
   const copyLink = () => {
-    navigator.clipboard.writeText(link);
+    navigator.clipboard.writeText(promptCategory ? inviteText : link);
     setCopied(true);
     toast.success(lang === "ru" ? "Ссылка скопирована" : "Link copied");
     setTimeout(() => setCopied(false), 2000);
@@ -108,7 +124,7 @@ const InviteContributorModal = ({ open, onClose, inviteCode, circleId, personNam
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="rounded-3xl max-w-md">
+      <DialogContent className="rounded-3xl max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-serif-display font-light text-xl">
             {lang === "ru" ? "Пригласить соавтора" : "Invite a contributor"}
@@ -121,10 +137,14 @@ const InviteContributorModal = ({ open, onClose, inviteCode, circleId, personNam
         </DialogHeader>
 
         <Tabs defaultValue="link" className="mt-2">
-          <TabsList className="grid grid-cols-2 w-full rounded-xl">
+          <TabsList className="grid grid-cols-3 w-full rounded-xl">
             <TabsTrigger value="link" className="rounded-lg text-xs">
               <Share2 size={13} className="mr-1.5" />
               {lang === "ru" ? "Ссылка" : "Link"}
+            </TabsTrigger>
+            <TabsTrigger value="prompts" className="rounded-lg text-xs">
+              <HelpCircle size={13} className="mr-1.5" />
+              {lang === "ru" ? "Вопросы" : "Prompts"}
             </TabsTrigger>
             <TabsTrigger value="email" className="rounded-lg text-xs">
               <Mail size={13} className="mr-1.5" />
@@ -157,6 +177,74 @@ const InviteContributorModal = ({ open, onClose, inviteCode, circleId, personNam
                 <span className="text-[10px]">{lang === "ru" ? "Ещё" : "More"}</span>
               </Button>
             </div>
+          </TabsContent>
+
+          {/* === PROMPTS TAB === */}
+          <TabsContent value="prompts" className="space-y-3 mt-4">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              {lang === "ru"
+                ? `Выберите тему — родственник получит ссылку, которая сразу откроет наводящие вопросы. Это помогает вспомнить детали и углубиться в историю.`
+                : `Pick a topic — the recipient gets a link that opens guiding questions right away, helping them recall details and dive deeper.`}
+            </p>
+
+            <div className="space-y-2">
+              {(Object.entries(cats) as [MemorialCategory, { label: string; emoji: string }][]).map(
+                ([key, { label, emoji }]) => {
+                  const count = MEMORIAL_QUESTIONS.filter((q) => q.category === key).length;
+                  const active = promptCategory === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setPromptCategory(active ? "" : key)}
+                      className={`w-full flex items-center gap-3 rounded-2xl px-4 py-3 border text-left transition-all ${
+                        active
+                          ? "bg-primary/5 border-primary"
+                          : "bg-card border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <span className="text-xl">{emoji}</span>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground">{label}</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {count} {lang === "ru" ? "вопросов" : "questions"}
+                        </p>
+                      </div>
+                      {active && <Check size={16} className="text-primary" />}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            {promptCategory && (
+              <>
+                <div className="bg-secondary/50 rounded-2xl p-3 text-[11px] text-muted-foreground">
+                  {inviteText}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={copyLink} variant="outline" className="rounded-2xl">
+                    {copied ? <Check size={14} className="mr-1.5" /> : <Copy size={14} className="mr-1.5" />}
+                    <span className="text-xs">{lang === "ru" ? "Скопировать" : "Copy"}</span>
+                  </Button>
+                  <Button onClick={shareNative} variant="outline" className="rounded-2xl">
+                    <Share2 size={14} className="mr-1.5" />
+                    <span className="text-xs">{lang === "ru" ? "Поделиться" : "Share"}</span>
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <Button onClick={openWhatsApp} variant="secondary" className="rounded-2xl flex-col h-auto py-3 gap-1">
+                    <MessageCircle size={16} className="text-green-600" />
+                    <span className="text-[10px]">WhatsApp</span>
+                  </Button>
+                  <Button onClick={openTelegram} variant="secondary" className="rounded-2xl flex-col h-auto py-3 gap-1">
+                    <Send size={16} className="text-blue-500" />
+                    <span className="text-[10px]">Telegram</span>
+                  </Button>
+                </div>
+              </>
+            )}
           </TabsContent>
 
           {/* === EMAIL TAB === */}

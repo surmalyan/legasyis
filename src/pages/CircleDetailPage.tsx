@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +53,7 @@ const ROLE_COLORS: Record<CircleRole, string> = {
 
 const CircleDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { lang } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -64,12 +65,26 @@ const CircleDetailPage = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [reminding, setReminding] = useState<string | null>(null);
   const [showGuided, setShowGuided] = useState(false);
+  const [initialTopic, setInitialTopic] = useState<MemorialCategory | null>(null);
   const [view, setView] = useState<"periods" | "chapters" | "timeline">("periods");
   const [voiceUrls, setVoiceUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (id && user) loadAll();
   }, [id, user]);
+
+  // Auto-open guided flow when invited with ?topic=
+  useEffect(() => {
+    const t = searchParams.get("topic") as MemorialCategory | null;
+    if (t && MEMORIAL_CATEGORIES[lang]?.[t]) {
+      setInitialTopic(t);
+      setShowGuided(true);
+      // clean URL
+      searchParams.delete("topic");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadAll = async () => {
     setLoading(true);
@@ -262,8 +277,9 @@ const CircleDetailPage = () => {
           lang={lang}
           personName={circle.person_name}
           personBirthYear={circle.person_birth_year}
+          initialCategory={initialTopic}
           onSubmit={handleGuidedSubmit}
-          onClose={() => setShowGuided(false)}
+          onClose={() => { setShowGuided(false); setInitialTopic(null); }}
         />
       )}
 

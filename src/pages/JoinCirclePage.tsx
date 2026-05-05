@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,8 @@ type CircleRole = Database["public"]["Enums"]["circle_role"];
 
 const JoinCirclePage = () => {
   const { code } = useParams<{ code: string }>();
+  const [searchParams] = useSearchParams();
+  const topic = searchParams.get("topic");
   const { lang } = useI18n();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -55,14 +57,15 @@ const JoinCirclePage = () => {
       role_label: roleLabel,
       status: "active",
     });
+    const dest = `/memory-circle/${circle.id}${topic ? `?topic=${topic}` : ""}`;
     if (error?.code === "23505") {
       toast.info(lang === "ru" ? "Вы уже участник" : "Already a member");
-      navigate(`/memory-circle/${circle.id}`);
+      navigate(dest);
     } else if (error) {
       toast.error(lang === "ru" ? "Ошибка" : "Error");
     } else {
       toast.success(lang === "ru" ? "Вы присоединились!" : "You joined!");
-      navigate(`/memory-circle/${circle.id}`);
+      navigate(dest);
     }
     setJoining(false);
   };
@@ -83,7 +86,7 @@ const JoinCirclePage = () => {
   }
 
   if (!user) {
-    navigate(`/auth?redirect=/memory-circle/join/${code}`);
+    navigate(`/auth?redirect=/memory-circle/join/${code}${topic ? `?topic=${topic}` : ""}`);
     return null;
   }
 
