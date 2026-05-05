@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Send, X, Image as ImageIcon, Mic, Square, Trash2, Loader2 } from "lucide-react";
 import {
@@ -8,6 +9,7 @@ import {
   type MemorialCategory,
   type MemorialQuestion,
 } from "@/lib/memorial-questions";
+import { LIFE_PERIODS, type LifePeriod, getYearRange } from "@/lib/life-periods";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -15,20 +17,29 @@ import { toast } from "sonner";
 type Props = {
   lang: string;
   personName: string;
+  personBirthYear?: number | null;
   onSubmit: (
     question: string,
     answer: string,
-    extras: { category: MemorialCategory; photoUrls: string[]; voicePath: string | null }
+    extras: {
+      category: MemorialCategory;
+      photoUrls: string[];
+      voicePath: string | null;
+      title: string | null;
+      lifePeriod: LifePeriod | null;
+    }
   ) => Promise<void>;
   onClose: () => void;
 };
 
-const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => {
+const GuidedQuestionsFlow = ({ lang, personName, personBirthYear, onSubmit, onClose }: Props) => {
   const { user } = useAuth();
   const [phase, setPhase] = useState<"categories" | "questions">("categories");
   const [selectedCategory, setSelectedCategory] = useState<MemorialCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
+  const [title, setTitle] = useState("");
+  const [lifePeriod, setLifePeriod] = useState<LifePeriod | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [answered, setAnswered] = useState<Set<string>>(new Set());
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
@@ -49,6 +60,8 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
   const resetExtras = () => {
     setPhotoUrls([]);
     setVoicePath(null);
+    setTitle("");
+    setLifePeriod("");
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,6 +146,8 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
       category: currentQ.category,
       photoUrls,
       voicePath,
+      title: title.trim() || null,
+      lifePeriod: (lifePeriod || null) as LifePeriod | null,
     });
     setAnswered((prev) => new Set(prev).add(currentQ.id));
     setAnswer("");
@@ -277,6 +292,44 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
                 className="rounded-2xl min-h-[120px] text-base resize-none border-border focus:border-primary"
                 autoFocus
               />
+
+              {/* Title */}
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={lang === "ru" ? "Название истории (необязательно)" : "Story title (optional)"}
+                className="rounded-2xl text-sm border-border focus:border-primary"
+                maxLength={80}
+              />
+
+              {/* Life period */}
+              <div>
+                <p className="text-[11px] uppercase tracking-widest text-muted-foreground font-semibold mb-2">
+                  {lang === "ru" ? "Период жизни" : "Life period"}
+                </p>
+                <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                  {LIFE_PERIODS.filter((p) => p.key !== "unknown").map((p) => {
+                    const yr = getYearRange(p, personBirthYear);
+                    const active = lifePeriod === p.key;
+                    return (
+                      <button
+                        key={p.key}
+                        onClick={() => setLifePeriod(active ? "" : p.key)}
+                        className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-card text-foreground border-border hover:border-primary/40"
+                        }`}
+                        title={yr || p.description[lang as "ru" | "en"]}
+                      >
+                        <span>{p.emoji}</span>
+                        <span>{p.label[lang as "ru" | "en"]}</span>
+                        {yr && <span className="opacity-70">· {yr}</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
               {/* Photo previews */}
               {photoUrls.length > 0 && (

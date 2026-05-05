@@ -107,9 +107,11 @@ export type Database = {
           content: string | null
           created_at: string
           id: string
+          life_period: string | null
           life_year: number | null
           photo_urls: string[] | null
           question: string | null
+          title: string | null
           voice_note_path: string | null
         }
         Insert: {
@@ -119,9 +121,11 @@ export type Database = {
           content?: string | null
           created_at?: string
           id?: string
+          life_period?: string | null
           life_year?: number | null
           photo_urls?: string[] | null
           question?: string | null
+          title?: string | null
           voice_note_path?: string | null
         }
         Update: {
@@ -131,9 +135,11 @@ export type Database = {
           content?: string | null
           created_at?: string
           id?: string
+          life_period?: string | null
           life_year?: number | null
           photo_urls?: string[] | null
           question?: string | null
+          title?: string | null
           voice_note_path?: string | null
         }
         Relationships: [
