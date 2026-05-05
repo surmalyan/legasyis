@@ -8,6 +8,7 @@ import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
 import PhotoQuestionAssistant from "@/components/PhotoQuestionAssistant";
+import StorySparkCard from "@/components/StorySparkCard";
 import InviteContributorModal from "@/components/invite/InviteContributorModal";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell } from "lucide-react";
@@ -361,6 +362,14 @@ const CircleDetailPage = () => {
               <Plus size={18} className="mr-2" />
               {lang === "ru" ? "Ответить на вопросы" : "Answer questions"}
             </Button>
+
+            {/* Story Spark — quick mood-based prompt to recall a funny/unusual/kind/vivid story */}
+            <StorySparkCard
+              lang={lang}
+              personName={circle.person_name}
+              personBirthYear={circle.person_birth_year}
+              onSubmit={handleGuidedSubmit}
+            />
 
             {/* AI Photo Assistant — suggests questions based on uploaded photo */}
             <PhotoQuestionAssistant
