@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import { bookThemes, generateBookStyles, type BookTheme } from "@/lib/book-themes";
 import StaticLogo from "@/components/StaticLogo";
 import { bookTypes, bookTypeOrder, type BookType } from "@/lib/book-types";
+import { mapPeriodToChapter } from "@/lib/period-chapter-map";
 
 const ExportPage = () => {
   const { lang } = useI18n();
