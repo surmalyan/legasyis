@@ -111,6 +111,7 @@ export type Database = {
           life_year: number | null
           photo_urls: string[] | null
           question: string | null
+          request_id: string | null
           title: string | null
           voice_note_path: string | null
         }
@@ -125,6 +126,7 @@ export type Database = {
           life_year?: number | null
           photo_urls?: string[] | null
           question?: string | null
+          request_id?: string | null
           title?: string | null
           voice_note_path?: string | null
         }
@@ -139,6 +141,7 @@ export type Database = {
           life_year?: number | null
           photo_urls?: string[] | null
           question?: string | null
+          request_id?: string | null
           title?: string | null
           voice_note_path?: string | null
         }
@@ -148,6 +151,13 @@ export type Database = {
             columns: ["circle_id"]
             isOneToOne: false
             referencedRelation: "memory_circles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "circle_memories_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "memory_requests"
             referencedColumns: ["id"]
           },
         ]
@@ -298,6 +308,48 @@ export type Database = {
           person_name?: string
           person_photo_url?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      memory_requests: {
+        Row: {
+          category: string | null
+          circle_id: string
+          code: string
+          created_at: string
+          creator_id: string
+          id: string
+          life_period: string | null
+          question: string
+          response_count: number
+          updated_at: string
+          voice_path: string | null
+        }
+        Insert: {
+          category?: string | null
+          circle_id: string
+          code?: string
+          created_at?: string
+          creator_id: string
+          id?: string
+          life_period?: string | null
+          question: string
+          response_count?: number
+          updated_at?: string
+          voice_path?: string | null
+        }
+        Update: {
+          category?: string | null
+          circle_id?: string
+          code?: string
+          created_at?: string
+          creator_id?: string
+          id?: string
+          life_period?: string | null
+          question?: string
+          response_count?: number
+          updated_at?: string
+          voice_path?: string | null
         }
         Relationships: []
       }
