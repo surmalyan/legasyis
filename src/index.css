@@ -6,17 +6,22 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 25 45% 18%;
+    /* Warm & Organic — soft cream surface with deep brown ink */
+    --background: 38 60% 98%;            /* #FFFDF9 */
+    --foreground: 17 53% 14%;            /* #3E2723 */
 
-    --card: 40 20% 95%;
-    --card-foreground: 25 45% 18%;
+    --card: 38 50% 99%;
+    --card-foreground: 17 53% 14%;
 
-    --popover: 40 18% 97%;
-    --popover-foreground: 25 45% 18%;
+    --popover: 38 60% 98%;
+    --popover-foreground: 17 53% 14%;
 
-    --primary: 105 40% 36%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 17 53% 14%;               /* #3E2723 deep brown for primary actions */
+    --primary-foreground: 38 60% 98%;
+
+    /* Nature green kept as accent for organic touches */
+    --nature: 105 40% 36%;
+    --nature-foreground: 0 0% 100%;
 
     --secondary: 35 20% 91%;
     --secondary-foreground: 25 40% 22%;
@@ -24,17 +29,21 @@
     --muted: 38 14% 93%;
     --muted-foreground: 25 15% 46%;
 
-    --accent: 25 35% 25%;
-    --accent-foreground: 40 18% 97%;
+    --accent: 35 55% 92%;
+    --accent-foreground: 17 53% 14%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 15% 87%;
-    --input: 35 15% 87%;
-    --ring: 105 40% 36%;
+    --border: 35 30% 90%;
+    --input: 35 25% 88%;
+    --ring: 17 53% 14%;
 
-    --radius: 1rem;
+    --radius: 0.5rem; /* 8px — slightly rounded buttons */
+
+    /* Soft organic shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(17 53% 14% / 0.06), 0 8px 24px -8px hsl(17 53% 14% / 0.08);
+    --shadow-warm: 0 4px 20px -6px hsl(28 50% 30% / 0.12);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 25 45% 18%;
@@ -108,6 +117,54 @@
 
   .font-serif-display {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
+  }
+
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+  .shadow-warm { box-shadow: var(--shadow-warm); }
+
+  /* Tactile press effect for buttons & tappable cards */
+  .press {
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 200ms ease;
+  }
+  .press:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 2px hsl(17 53% 14% / 0.08);
+  }
+
+  /* Page-flip fade — used when opening a chapter */
+  .animate-page-flip {
+    animation: page-flip 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform-origin: left center;
+    perspective: 1200px;
+  }
+}
+
+@layer base {
+  /* Headings → Cormorant Garamond globally */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  /* Apply tactile press to all native buttons & links acting as buttons */
+  button, [role="button"] {
+    @apply press;
+  }
+}
+
+@keyframes page-flip {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-12deg) translateY(8px);
+    filter: blur(2px);
+  }
+  60% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) rotateY(0) translateY(0);
   }
 }
 
