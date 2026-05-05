@@ -21,6 +21,9 @@ import { useTheme } from "@/hooks/use-theme";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import StaticLogo from "@/components/StaticLogo";
+import LegacySecuredBadge from "@/components/LegacySecuredBadge";
+import { usePreservedStatus, PRESERVED_THRESHOLD } from "@/hooks/use-preserved-status";
+import { ShieldCheck, UserCheck } from "lucide-react";
 
 // Password strength checker
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
@@ -64,6 +67,40 @@ const SettingsPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [lastSignIn, setLastSignIn] = useState<string | null>(null);
   const [authProvider, setAuthProvider] = useState<string>("email");
+
+  // Safe Haven / Digital Heir state
+  const preserved = usePreservedStatus();
+  const [heirEmail, setHeirEmail] = useState("");
+  const [savingHeir, setSavingHeir] = useState(false);
+
+  useEffect(() => {
+    setHeirEmail(preserved.digitalHeirEmail || "");
+  }, [preserved.digitalHeirEmail]);
+
+  const saveDigitalHeir = async () => {
+    const trimmed = heirEmail.trim();
+    if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error(lang === "ru" ? "Некорректный email" : "Invalid email");
+      return;
+    }
+    if (trimmed && user?.email && trimmed.toLowerCase() === user.email.toLowerCase()) {
+      toast.error(lang === "ru" ? "Это ваш собственный email" : "That's your own email");
+      return;
+    }
+    setSavingHeir(true);
+    const { error } = await supabase.rpc("set_digital_heir", { _email: trimmed || null });
+    setSavingHeir(false);
+    if (error) {
+      toast.error(lang === "ru" ? "Не удалось сохранить" : "Failed to save");
+      return;
+    }
+    toast.success(
+      trimmed
+        ? (lang === "ru" ? "Цифровой наследник назначен" : "Digital Heir assigned")
+        : (lang === "ru" ? "Наследник удалён" : "Heir removed")
+    );
+    preserved.refresh();
+  };
 
   useEffect(() => {
     const settings = getNotificationSettings();
@@ -658,6 +695,114 @@ const SettingsPage = () => {
               </ul>
             </div>
           </div>
+        </section>
+
+        {/* ═══════════════════════ Safe Haven status ═══════════════════════ */}
+        <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <ShieldCheck size={18} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">
+                {lang === "ru" ? "Безопасное хранилище" : "Safe Haven"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {lang === "ru"
+                  ? "Защищает наследие после окончания подписки"
+                  : "Protects your legacy after subscription ends"}
+              </p>
+            </div>
+          </div>
+
+          {preserved.isPreserved ? (
+            <div className="space-y-3">
+              <LegacySecuredBadge reason={preserved.reason} />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {preserved.reason === "legacy_tier"
+                  ? (lang === "ru"
+                    ? "Тариф «Legacy» активен. Ваши истории сохранены навсегда — даже если подписка закончится, родственники и наследник смогут читать их в режиме «только чтение»."
+                    : "Legacy tier active. Your stories are preserved forever — even if your subscription ends, family and your heir keep read-only access.")
+                  : (lang === "ru"
+                    ? "Вы достигли 50+ записей. Ваше наследие защищено навсегда: близкие сохранят доступ для чтения, даже если подписка прекратится."
+                    : "You've reached 50+ entries. Your legacy is preserved forever — invited family keep read-only access even if your subscription ends.")}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">
+                  {lang === "ru" ? "Прогресс до защиты" : "Progress to protection"}
+                </span>
+                <span className="font-semibold text-foreground tabular-nums">
+                  {Math.min(preserved.entryCount, PRESERVED_THRESHOLD)} / {PRESERVED_THRESHOLD}
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${Math.min(100, (preserved.entryCount / PRESERVED_THRESHOLD) * 100)}%` }}
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed pt-1">
+                {lang === "ru"
+                  ? "Сделайте 50 записей или активируйте тариф «Legacy» — и ваше наследие останется доступным навсегда."
+                  : "Reach 50 entries or unlock the Legacy tier — your legacy stays available forever."}
+              </p>
+            </div>
+          )}
+        </section>
+
+        {/* ═══════════════════════ Digital Heir ═══════════════════════ */}
+        <section className="bg-card rounded-2xl border border-border p-5 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+              <UserCheck size={18} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-foreground">
+                {lang === "ru" ? "Цифровой наследник" : "Digital Heir"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {lang === "ru"
+                  ? "Тот, кто унаследует роль владельца"
+                  : "The person who will inherit the Owner role"}
+              </p>
+            </div>
+          </div>
+
+          <input
+            type="email"
+            value={heirEmail}
+            onChange={(e) => setHeirEmail(e.target.value)}
+            placeholder={lang === "ru" ? "email@example.com" : "email@example.com"}
+            className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+
+          <button
+            onClick={saveDigitalHeir}
+            disabled={savingHeir || (heirEmail.trim() === (preserved.digitalHeirEmail || ""))}
+            className="w-full bg-primary text-primary-foreground rounded-xl py-3 text-sm font-medium transition-all active:scale-[0.97] hover:bg-primary/90 disabled:opacity-50"
+          >
+            {savingHeir
+              ? (lang === "ru" ? "Сохранение…" : "Saving…")
+              : preserved.digitalHeirEmail
+                ? (lang === "ru" ? "Обновить наследника" : "Update Heir")
+                : (lang === "ru" ? "Назначить наследника" : "Assign Heir")}
+          </button>
+
+          {preserved.digitalHeirEmail && (
+            <p className="text-[11px] text-muted-foreground text-center">
+              {lang === "ru" ? "Текущий наследник: " : "Current heir: "}
+              <span className="font-medium text-foreground">{preserved.digitalHeirEmail}</span>
+            </p>
+          )}
+
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            {lang === "ru"
+              ? "Когда вас не станет, ваш наследник сможет читать сохранённое наследие и принять роль владельца. Это действие можно изменить в любой момент."
+              : "When the time comes, your heir can read your preserved legacy and take over the Owner role. You can change this at any time."}
+          </p>
         </section>
 
         {/* ═══════════════════════ Account ═══════════════════════ */}

@@ -406,6 +406,9 @@ export type Database = {
           city: string | null
           completion_step: number
           created_at: string
+          digital_heir_email: string | null
+          digital_heir_set_at: string | null
+          digital_heir_user_id: string | null
           education: string | null
           employment_sphere: string | null
           family: string | null
@@ -413,11 +416,15 @@ export type Database = {
           grateful_for: string | null
           hobbies: string | null
           id: string
+          is_preserved: boolean
           is_public: boolean
           languages: string | null
           last_active_at: string | null
+          legacy_tier: boolean
           life_motto: string | null
           occupation: string | null
+          preserved_at: string | null
+          preserved_reason: string | null
           updated_at: string
           user_id: string
           username: string | null
@@ -431,6 +438,9 @@ export type Database = {
           city?: string | null
           completion_step?: number
           created_at?: string
+          digital_heir_email?: string | null
+          digital_heir_set_at?: string | null
+          digital_heir_user_id?: string | null
           education?: string | null
           employment_sphere?: string | null
           family?: string | null
@@ -438,11 +448,15 @@ export type Database = {
           grateful_for?: string | null
           hobbies?: string | null
           id?: string
+          is_preserved?: boolean
           is_public?: boolean
           languages?: string | null
           last_active_at?: string | null
+          legacy_tier?: boolean
           life_motto?: string | null
           occupation?: string | null
+          preserved_at?: string | null
+          preserved_reason?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -456,6 +470,9 @@ export type Database = {
           city?: string | null
           completion_step?: number
           created_at?: string
+          digital_heir_email?: string | null
+          digital_heir_set_at?: string | null
+          digital_heir_user_id?: string | null
           education?: string | null
           employment_sphere?: string | null
           family?: string | null
@@ -463,11 +480,15 @@ export type Database = {
           grateful_for?: string | null
           hobbies?: string | null
           id?: string
+          is_preserved?: boolean
           is_public?: boolean
           languages?: string | null
           last_active_at?: string | null
+          legacy_tier?: boolean
           life_motto?: string | null
           occupation?: string | null
+          preserved_at?: string | null
+          preserved_reason?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
@@ -602,10 +623,14 @@ export type Database = {
         Args: { _circle_id: string; _user_id: string }
         Returns: boolean
       }
+      is_digital_heir_of: { Args: { _owner_id: string }; Returns: boolean }
+      is_user_preserved: { Args: { _user_id: string }; Returns: boolean }
+      refresh_preserved_status: { Args: { _user_id: string }; Returns: boolean }
       remind_silent_contributor: {
         Args: { _circle_id: string; _member_user_id: string }
         Returns: string
       }
+      set_digital_heir: { Args: { _email: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"

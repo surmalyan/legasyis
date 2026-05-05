@@ -17,6 +17,8 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { MEMORIAL_QUESTIONS } from "@/lib/memorial-questions";
+import { usePreservedStatus } from "@/hooks/use-preserved-status";
+import LegacySecuredBadge from "@/components/LegacySecuredBadge";
 
 const HomePage = () => {
   const { t, lang } = useI18n();
@@ -26,6 +28,7 @@ const HomePage = () => {
   const [questionData, setQuestionData] = useState(() => getTodayQuestion(lang));
   const [isSwapping, setIsSwapping] = useState(false);
   const { loading, canCreate, remaining, isSubscribed, isTrial, trialDaysLeft } = useSubscription();
+  const preserved = usePreservedStatus();
   const [memorialBooks, setMemorialBooks] = useState<Array<{
     id: string;
     person_name: string;
@@ -123,6 +126,12 @@ const HomePage = () => {
       <main className="flex-1 flex flex-col items-center px-6 pb-28 pt-2">
         <div className="w-full max-w-md">
           <NotificationBanner />
+
+          {!preserved.loading && preserved.isPreserved && (
+            <div className="mb-4 flex justify-center animate-fade-in">
+              <LegacySecuredBadge reason={preserved.reason} />
+            </div>
+          )}
 
           {/* Trial banner */}
           {!loading && isTrial && (
