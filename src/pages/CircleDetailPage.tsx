@@ -433,7 +433,7 @@ const CircleDetailPage = () => {
                 {lang === "ru" ? "Пока нет воспоминаний. Будьте первым!" : "No memories yet. Be the first!"}
               </p>
             ) : view === "periods" ? (
-              <div className="space-y-6">
+              <div key="periods" className="space-y-6 animate-page-flip">
                 {LIFE_PERIODS.map((p) => {
                   const periodMems = memoriesByPeriod[p.key] || [];
                   if (periodMems.length === 0) return null;
@@ -458,7 +458,7 @@ const CircleDetailPage = () => {
                 })}
               </div>
             ) : view === "chapters" ? (
-              <div className="space-y-6">
+              <div key="chapters" className="space-y-6 animate-page-flip">
                 {(Object.keys(categories) as MemorialCategory[]).map((catKey) => {
                   const catMems = memoriesByCategory[catKey] || [];
                   if (catMems.length === 0) return null;
@@ -476,7 +476,7 @@ const CircleDetailPage = () => {
                 })}
               </div>
             ) : (
-              <div className="relative space-y-4 pl-5 border-l-2 border-border">
+              <div key="timeline" className="relative space-y-4 pl-5 border-l-2 border-border animate-page-flip">
                 {memories
                   .slice()
                   .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
