@@ -18,6 +18,7 @@ type Props = {
   lang: string;
   personName: string;
   personBirthYear?: number | null;
+  initialCategory?: MemorialCategory | null;
   onSubmit: (
     question: string,
     answer: string,
@@ -32,10 +33,10 @@ type Props = {
   onClose: () => void;
 };
 
-const GuidedQuestionsFlow = ({ lang, personName, personBirthYear, onSubmit, onClose }: Props) => {
+const GuidedQuestionsFlow = ({ lang, personName, personBirthYear, initialCategory, onSubmit, onClose }: Props) => {
   const { user } = useAuth();
-  const [phase, setPhase] = useState<"categories" | "questions">("categories");
-  const [selectedCategory, setSelectedCategory] = useState<MemorialCategory | null>(null);
+  const [phase, setPhase] = useState<"categories" | "questions">(initialCategory ? "questions" : "categories");
+  const [selectedCategory, setSelectedCategory] = useState<MemorialCategory | null>(initialCategory ?? null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
   const [title, setTitle] = useState("");
