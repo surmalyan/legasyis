@@ -10,6 +10,7 @@ import BottomNav from "@/components/BottomNav";
 import { bookThemes, generateBookStyles, type BookTheme } from "@/lib/book-themes";
 import StaticLogo from "@/components/StaticLogo";
 import { bookTypes, bookTypeOrder, type BookType } from "@/lib/book-types";
+import { mapPeriodToChapter } from "@/lib/period-chapter-map";
 
 const ExportPage = () => {
   const { lang } = useI18n();
@@ -105,6 +106,88 @@ const ExportPage = () => {
       }
 
       setProgress(t.stepEntries);
+
+      // ---------- Fetch related media (Memory Circles + Voice Library) ----------
+      // Avatar (signed URL so it renders in the print window even for private buckets)
+      let avatarSignedUrl: string | null = null;
+      if (profile?.avatar_url) {
+        try {
+          const { data: signed } = await supabase.storage
+            .from("avatars")
+            .createSignedUrl(profile.avatar_url, 60 * 60);
+          avatarSignedUrl =
+            signed?.signedUrl ||
+            supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl;
+        } catch {
+          avatarSignedUrl = supabase.storage.from("avatars").getPublicUrl(profile.avatar_url).data.publicUrl;
+        }
+      }
+
+      // Memory Circles created by this user → contributions grouped by life period
+      let circleMemories: Array<{
+        id: string;
+        content: string | null;
+        title: string | null;
+        life_period: string | null;
+        author_name?: string | null;
+        voice_note_path?: string | null;
+      }> = [];
+      try {
+        const { data: myCircles } = await supabase
+          .from("memory_circles")
+          .select("id")
+          .eq("creator_id", user.id);
+        const circleIds = (myCircles || []).map((c) => c.id);
+        if (circleIds.length) {
+          const { data: mems } = await supabase
+            .from("circle_memories")
+            .select("id, content, title, life_period, voice_note_path, author_id")
+            .in("circle_id", circleIds)
+            .order("created_at", { ascending: true });
+          circleMemories = (mems || []).map((m) => ({
+            id: m.id,
+            content: m.content,
+            title: m.title,
+            life_period: m.life_period,
+            voice_note_path: m.voice_note_path,
+          }));
+        }
+      } catch (e) {
+        console.warn("circle memories fetch failed", e);
+      }
+
+      // Voice library — user's recordings with signed URLs (for QR codes)
+      let voiceRecordings: Array<{ id: string; title: string; url: string }> = [];
+      try {
+        const { data: recs } = await supabase
+          .from("voice_recordings")
+          .select("id, storage_path, field_key, created_at, duration_seconds")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: true });
+        for (const r of recs || []) {
+          const { data: signed } = await supabase.storage
+            .from("voice-notes")
+            .createSignedUrl(r.storage_path, 60 * 60 * 24 * 30); // 30-day link
+          if (signed?.signedUrl) {
+            voiceRecordings.push({
+              id: r.id,
+              title:
+                r.field_key ||
+                new Date(r.created_at).toLocaleDateString(lang === "ru" ? "ru-RU" : "en-US"),
+              url: signed.signedUrl,
+            });
+          }
+        }
+      } catch (e) {
+        console.warn("voice library fetch failed", e);
+      }
+
+      // Group circle memories by mapped chapter
+      const circleByChapter: Record<string, typeof circleMemories> = {};
+      for (const m of circleMemories) {
+        const ch = mapPeriodToChapter(m.life_period);
+        (circleByChapter[ch] = circleByChapter[ch] || []).push(m);
+      }
 
       // Group entries by chapter
       const chaptersMap: Record<string, Array<{ question: string; answer: string }>> = {};
@@ -216,6 +299,29 @@ const ExportPage = () => {
           const epigraph = showEpigraphs && epigraphs[lang]?.[ch.key]
             ? `<p style="font-style:italic;text-align:center;color:${bookThemes[selectedTheme].mutedColor};margin-bottom:24px;font-size:13px;">"${epigraphs[lang][ch.key]}"</p>`
             : "";
+          // Photo placeholder block (every chapter)
+          const photoPlaceholder = `
+            <figure class="photo-placeholder">
+              <div class="photo-frame"></div>
+              <figcaption>${lang === "ru" ? "Место для фотографии" : "Photo placeholder"}</figcaption>
+            </figure>`;
+          // Circle memories at the END of chapter
+          const memos = circleByChapter[ch.key] || [];
+          const circleSection = memos.length
+            ? `
+            <section class="circle-section">
+              <h3 class="circle-heading">${lang === "ru" ? "Воспоминания близких" : "From the Memory Circle"}</h3>
+              ${memos
+                .map(
+                  (m) => `
+                <blockquote class="circle-memory">
+                  ${m.title ? `<p class="circle-title">${m.title}</p>` : ""}
+                  <p class="circle-text">${(m.content || "").replace(/\n/g, "<br/>")}</p>
+                </blockquote>`
+                )
+                .join("")}
+            </section>`
+            : "";
           return `
           <div class="chapter-page">
             <div class="chapter-header">
@@ -225,6 +331,8 @@ const ExportPage = () => {
             </div>
             ${epigraph}
             <div class="chapter-text">${ch.text.replace(/\n/g, "<br/>")}</div>
+            ${photoPlaceholder}
+            ${circleSection}
           </div>
         `;
         })
@@ -245,6 +353,38 @@ const ExportPage = () => {
       const themeConfig = bookThemes[selectedTheme];
       const styles = generateBookStyles(themeConfig);
 
+      // ---------- Voice Library page (with QR codes) ----------
+      const voiceLibraryHtml = voiceRecordings.length
+        ? `<div class="voice-page">
+            <h2 class="voice-heading">${lang === "ru" ? "Голосовая библиотека" : "Voice Library"}</h2>
+            <p class="voice-intro">${
+              lang === "ru"
+                ? "Отсканируйте QR-код, чтобы прослушать оригинальную аудиозапись."
+                : "Scan a QR code to listen to the original recording."
+            }</p>
+            <div class="voice-grid">
+              ${voiceRecordings
+                .map(
+                  (v) => `
+                <div class="voice-item">
+                  <img class="voice-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(
+                    v.url
+                  )}" alt="QR" />
+                  <p class="voice-title">${v.title}</p>
+                </div>`
+                )
+                .join("")}
+            </div>
+          </div>`
+        : "";
+
+      // ---------- Title-page photo (replaces simple cover content) ----------
+      const birthYearStr = profile?.birth_date ? new Date(profile.birth_date).getFullYear() : null;
+      const yearsOfLife = birthYearStr ? `${birthYearStr} — ${year}` : `${year}`;
+      const titlePhotoHtml = avatarSignedUrl
+        ? `<img class="cover-photo" src="${avatarSignedUrl}" alt="" />`
+        : `<div class="cover-photo cover-photo-placeholder"></div>`;
+
       const html = `<!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -259,8 +399,10 @@ const ExportPage = () => {
     <div class="cover-content">
       <div class="cover-ornament"></div>
       <div class="cover-logo">Legacy</div>
+      ${titlePhotoHtml}
       <h1 class="cover-title">${authorName}</h1>
       <p class="cover-subtitle">${t.cover}</p>
+      <p class="cover-years">${yearsOfLife}</p>
       ${selectedType !== "mini" ? `<p style="font-size:12px;opacity:0.6;margin-top:8px;letter-spacing:2px;">${bookTypeName}</p>` : ""}
       <div class="cover-ornament-bottom"></div>
       <p class="cover-year">${year}</p>
@@ -286,6 +428,9 @@ const ExportPage = () => {
 
   <!-- LETTER TO DESCENDANTS -->
   ${letterHtml}
+
+  <!-- VOICE LIBRARY -->
+  ${voiceLibraryHtml}
 
   <!-- BACK COVER -->
   <div class="back-cover">
