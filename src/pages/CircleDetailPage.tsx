@@ -363,6 +363,14 @@ const CircleDetailPage = () => {
               {lang === "ru" ? "Ответить на вопросы" : "Answer questions"}
             </Button>
 
+            {/* Story Spark — quick mood-based prompt to recall a funny/unusual/kind/vivid story */}
+            <StorySparkCard
+              lang={lang}
+              personName={circle.person_name}
+              personBirthYear={circle.person_birth_year}
+              onSubmit={handleGuidedSubmit}
+            />
+
             {/* AI Photo Assistant — suggests questions based on uploaded photo */}
             <PhotoQuestionAssistant
               lang={lang}
