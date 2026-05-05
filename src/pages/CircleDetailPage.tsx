@@ -14,6 +14,7 @@ import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell } from "lucide-
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { MEMORIAL_CATEGORIES, MEMORIAL_QUESTIONS, type MemorialCategory } from "@/lib/memorial-questions";
+import { LIFE_PERIODS, getPeriodInfo, getYearRange, type LifePeriod } from "@/lib/life-periods";
 
 type CircleRole = Database["public"]["Enums"]["circle_role"];
 
@@ -34,6 +35,8 @@ type Memory = {
   question: string | null;
   category: string | null;
   life_year: number | null;
+  title: string | null;
+  life_period: string | null;
   created_at: string;
 };
 
@@ -61,7 +64,7 @@ const CircleDetailPage = () => {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [reminding, setReminding] = useState<string | null>(null);
   const [showGuided, setShowGuided] = useState(false);
-  const [view, setView] = useState<"timeline" | "chapters">("chapters");
+  const [view, setView] = useState<"periods" | "chapters" | "timeline">("periods");
   const [voiceUrls, setVoiceUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -114,7 +117,13 @@ const CircleDetailPage = () => {
   const handleGuidedSubmit = async (
     question: string,
     answer: string,
-    extras: { category: MemorialCategory; photoUrls: string[]; voicePath: string | null }
+    extras: {
+      category: MemorialCategory;
+      photoUrls: string[];
+      voicePath: string | null;
+      title: string | null;
+      lifePeriod: LifePeriod | null;
+    }
   ) => {
     if (!user || !id) return;
     const { error } = await supabase.from("circle_memories").insert({
@@ -125,6 +134,8 @@ const CircleDetailPage = () => {
       category: extras.category,
       photo_urls: extras.photoUrls.length ? extras.photoUrls : null,
       voice_note_path: extras.voicePath,
+      title: extras.title,
+      life_period: extras.lifePeriod,
     });
     if (error) {
       toast.error(lang === "ru" ? "Ошибка сохранения" : "Failed to save");
@@ -162,8 +173,20 @@ const CircleDetailPage = () => {
 
   const renderMemoryCard = (memory: Memory) => {
     const author = members.find((m) => m.user_id === memory.author_id);
+    const period = memory.life_period ? getPeriodInfo(memory.life_period) : null;
     return (
       <div key={memory.id} className="bg-card border border-border rounded-2xl p-4">
+        {memory.title && (
+          <h4 className="text-base font-serif-display text-foreground mb-1.5">
+            {memory.title}
+          </h4>
+        )}
+        {period && (
+          <p className="text-[10px] text-muted-foreground mb-2 flex items-center gap-1">
+            <span>{period.emoji}</span>
+            <span>{period.label[lang as "ru" | "en"]}</span>
+          </p>
+        )}
         {memory.question && (
           <p className="text-xs text-primary font-medium mb-2 italic">{memory.question}</p>
         )}
@@ -224,12 +247,21 @@ const CircleDetailPage = () => {
     memoriesByCategory[cat].push(m);
   });
 
+  // Group memories by life period
+  const memoriesByPeriod: Record<string, Memory[]> = {};
+  memories.forEach((m) => {
+    const key = m.life_period || "unknown";
+    if (!memoriesByPeriod[key]) memoriesByPeriod[key] = [];
+    memoriesByPeriod[key].push(m);
+  });
+
   return (
     <>
       {showGuided && (
         <GuidedQuestionsFlow
           lang={lang}
           personName={circle.person_name}
+          personBirthYear={circle.person_birth_year}
           onSubmit={handleGuidedSubmit}
           onClose={() => setShowGuided(false)}
         />
@@ -333,24 +365,32 @@ const CircleDetailPage = () => {
               <h3 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                 {lang === "ru" ? "Книга" : "The Book"} ({memories.length})
               </h3>
-              <div className="flex bg-secondary rounded-xl p-1">
+              <div className="flex bg-secondary rounded-xl p-1 gap-0.5">
+                <button
+                  onClick={() => setView("periods")}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                    view === "periods" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
+                  }`}
+                >
+                  🕰️ {lang === "ru" ? "Периоды" : "Periods"}
+                </button>
                 <button
                   onClick={() => setView("chapters")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
                     view === "chapters" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
                   }`}
                 >
                   <BookOpen size={12} />
-                  {lang === "ru" ? "Главы" : "Chapters"}
+                  {lang === "ru" ? "Темы" : "Topics"}
                 </button>
                 <button
                   onClick={() => setView("timeline")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all ${
+                  className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all ${
                     view === "timeline" ? "bg-background text-foreground shadow-sm" : "text-muted-foreground"
                   }`}
                 >
                   <Clock size={12} />
-                  {lang === "ru" ? "Хронология" : "Timeline"}
+                  {lang === "ru" ? "Лента" : "Timeline"}
                 </button>
               </div>
             </div>
@@ -359,6 +399,31 @@ const CircleDetailPage = () => {
               <p className="text-center text-sm text-muted-foreground py-8">
                 {lang === "ru" ? "Пока нет воспоминаний. Будьте первым!" : "No memories yet. Be the first!"}
               </p>
+            ) : view === "periods" ? (
+              <div className="space-y-6">
+                {LIFE_PERIODS.map((p) => {
+                  const periodMems = memoriesByPeriod[p.key] || [];
+                  if (periodMems.length === 0) return null;
+                  const yr = getYearRange(p, circle.person_birth_year);
+                  return (
+                    <div key={p.key}>
+                      <div className="flex items-baseline gap-2 mb-3 pb-2 border-b border-border">
+                        <span className="text-lg">{p.emoji}</span>
+                        <h4 className="text-sm font-serif-display text-foreground">
+                          {p.label[lang as "ru" | "en"]}
+                        </h4>
+                        <span className="text-[10px] text-muted-foreground">
+                          {yr || p.description[lang as "ru" | "en"]}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground ml-auto">
+                          {periodMems.length}
+                        </span>
+                      </div>
+                      <div className="space-y-3">{periodMems.map(renderMemoryCard)}</div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : view === "chapters" ? (
               <div className="space-y-6">
                 {(Object.keys(categories) as MemorialCategory[]).map((catKey) => {
