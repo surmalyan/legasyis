@@ -21,6 +21,9 @@ import { useTheme } from "@/hooks/use-theme";
 import { toast } from "sonner";
 import BottomNav from "@/components/BottomNav";
 import StaticLogo from "@/components/StaticLogo";
+import LegacySecuredBadge from "@/components/LegacySecuredBadge";
+import { usePreservedStatus, PRESERVED_THRESHOLD } from "@/hooks/use-preserved-status";
+import { ShieldCheck, UserCheck } from "lucide-react";
 
 // Password strength checker
 function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
@@ -64,6 +67,40 @@ const SettingsPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [lastSignIn, setLastSignIn] = useState<string | null>(null);
   const [authProvider, setAuthProvider] = useState<string>("email");
+
+  // Safe Haven / Digital Heir state
+  const preserved = usePreservedStatus();
+  const [heirEmail, setHeirEmail] = useState("");
+  const [savingHeir, setSavingHeir] = useState(false);
+
+  useEffect(() => {
+    setHeirEmail(preserved.digitalHeirEmail || "");
+  }, [preserved.digitalHeirEmail]);
+
+  const saveDigitalHeir = async () => {
+    const trimmed = heirEmail.trim();
+    if (trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error(lang === "ru" ? "Некорректный email" : "Invalid email");
+      return;
+    }
+    if (trimmed && user?.email && trimmed.toLowerCase() === user.email.toLowerCase()) {
+      toast.error(lang === "ru" ? "Это ваш собственный email" : "That's your own email");
+      return;
+    }
+    setSavingHeir(true);
+    const { error } = await supabase.rpc("set_digital_heir", { _email: trimmed || null });
+    setSavingHeir(false);
+    if (error) {
+      toast.error(lang === "ru" ? "Не удалось сохранить" : "Failed to save");
+      return;
+    }
+    toast.success(
+      trimmed
+        ? (lang === "ru" ? "Цифровой наследник назначен" : "Digital Heir assigned")
+        : (lang === "ru" ? "Наследник удалён" : "Heir removed")
+    );
+    preserved.refresh();
+  };
 
   useEffect(() => {
     const settings = getNotificationSettings();
