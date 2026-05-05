@@ -10,8 +10,9 @@ import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
 import PhotoQuestionAssistant from "@/components/PhotoQuestionAssistant";
 import StorySparkCard from "@/components/StorySparkCard";
 import InviteContributorModal from "@/components/invite/InviteContributorModal";
+import RequestMemoryModal from "@/components/RequestMemoryModal";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell } from "lucide-react";
+import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell, MessageCircleQuestion } from "lucide-react";
 import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { MEMORIAL_CATEGORIES, MEMORIAL_QUESTIONS, type MemorialCategory } from "@/lib/memorial-questions";
@@ -64,6 +65,7 @@ const CircleDetailPage = () => {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loading, setLoading] = useState(true);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
   const [reminding, setReminding] = useState<string | null>(null);
   const [showGuided, setShowGuided] = useState(false);
   const [initialTopic, setInitialTopic] = useState<MemorialCategory | null>(null);
@@ -351,10 +353,16 @@ const CircleDetailPage = () => {
 
             {/* Invite contributor */}
             {isCreator && (
-              <Button onClick={() => setInviteOpen(true)} variant="outline" className="w-full rounded-2xl mb-4 border-primary/30 text-primary hover:bg-primary/5">
-                <UserPlus size={16} className="mr-2" />
-                {lang === "ru" ? "Пригласить соавтора" : "Invite contributor"}
-              </Button>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <Button onClick={() => setInviteOpen(true)} variant="outline" className="rounded-2xl border-primary/30 text-primary hover:bg-primary/5">
+                  <UserPlus size={15} className="mr-1.5" />
+                  <span className="text-xs">{lang === "ru" ? "Пригласить" : "Invite"}</span>
+                </Button>
+                <Button onClick={() => setRequestOpen(true)} variant="outline" className="rounded-2xl border-primary/30 text-primary hover:bg-primary/5">
+                  <MessageCircleQuestion size={15} className="mr-1.5" />
+                  <span className="text-xs">{lang === "ru" ? "Попросить историю" : "Request memory"}</span>
+                </Button>
+              </div>
             )}
 
             {/* Guided questions CTA */}
@@ -490,6 +498,16 @@ const CircleDetailPage = () => {
             inviteCode={circle.invite_code}
             circleId={circle.id}
             personName={circle.person_name}
+          />
+        )}
+
+        {circle && isCreator && (
+          <RequestMemoryModal
+            open={requestOpen}
+            onClose={() => setRequestOpen(false)}
+            circleId={circle.id}
+            personName={circle.person_name}
+            onCreated={loadAll}
           />
         )}
       </div>
