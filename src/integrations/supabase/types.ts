@@ -101,11 +101,13 @@ export type Database = {
       }
       circle_memories: {
         Row: {
-          author_id: string
+          author_id: string | null
           category: string | null
           circle_id: string
           content: string | null
           created_at: string
+          guest_email: string | null
+          guest_name: string | null
           id: string
           life_period: string | null
           life_year: number | null
@@ -116,11 +118,13 @@ export type Database = {
           voice_note_path: string | null
         }
         Insert: {
-          author_id: string
+          author_id?: string | null
           category?: string | null
           circle_id: string
           content?: string | null
           created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           life_period?: string | null
           life_year?: number | null
@@ -131,11 +135,13 @@ export type Database = {
           voice_note_path?: string | null
         }
         Update: {
-          author_id?: string
+          author_id?: string | null
           category?: string | null
           circle_id?: string
           content?: string | null
           created_at?: string
+          guest_email?: string | null
+          guest_name?: string | null
           id?: string
           life_period?: string | null
           life_year?: number | null
@@ -631,6 +637,17 @@ export type Database = {
         Returns: string
       }
       set_digital_heir: { Args: { _email: string }; Returns: undefined }
+      submit_guest_memory: {
+        Args: {
+          _content: string
+          _guest_email: string
+          _guest_name: string
+          _invite_code: string
+          _photo_urls: string[]
+          _voice_note_path: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "user"
