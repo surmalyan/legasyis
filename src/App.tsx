@@ -24,6 +24,7 @@ import MemorialOnboardingPage from "./pages/MemorialOnboardingPage";
 import MemoryCirclePage from "./pages/MemoryCirclePage";
 import CircleDetailPage from "./pages/CircleDetailPage";
 import JoinCirclePage from "./pages/JoinCirclePage";
+import AnswerRequestPage from "./pages/AnswerRequestPage";
 import NotFound from "./pages/NotFound";
 import { Loader2 } from "lucide-react";
 
@@ -71,6 +72,7 @@ const App = () => (
               <Route path="/memory-circle" element={<ProtectedRoute><MemoryCirclePage /></ProtectedRoute>} />
               <Route path="/memory-circle/:id" element={<ProtectedRoute><CircleDetailPage /></ProtectedRoute>} />
               <Route path="/memory-circle/join/:code" element={<JoinCirclePage />} />
+              <Route path="/memory-circle/request/:code" element={<AnswerRequestPage />} />
               <Route path="/legacy/:userId" element={<LegacyPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
