@@ -8,6 +8,7 @@ import StaticLogo from "@/components/StaticLogo";
 import GuidedQuestionsFlow from "@/components/GuidedQuestionsFlow";
 import PersonalitySummaryCard from "@/components/PersonalitySummaryCard";
 import PhotoQuestionAssistant from "@/components/PhotoQuestionAssistant";
+import StorySparkCard from "@/components/StorySparkCard";
 import InviteContributorModal from "@/components/invite/InviteContributorModal";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Plus, Clock, BookOpen, Mic, UserPlus, Bell } from "lucide-react";
