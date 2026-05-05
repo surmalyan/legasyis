@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Send, X, Image as ImageIcon, Mic, Square, Trash2, Loader2 } from "lucide-react";
 import {
@@ -8,6 +9,7 @@ import {
   type MemorialCategory,
   type MemorialQuestion,
 } from "@/lib/memorial-questions";
+import { LIFE_PERIODS, type LifePeriod, getYearRange } from "@/lib/life-periods";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
@@ -15,20 +17,29 @@ import { toast } from "sonner";
 type Props = {
   lang: string;
   personName: string;
+  personBirthYear?: number | null;
   onSubmit: (
     question: string,
     answer: string,
-    extras: { category: MemorialCategory; photoUrls: string[]; voicePath: string | null }
+    extras: {
+      category: MemorialCategory;
+      photoUrls: string[];
+      voicePath: string | null;
+      title: string | null;
+      lifePeriod: LifePeriod | null;
+    }
   ) => Promise<void>;
   onClose: () => void;
 };
 
-const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => {
+const GuidedQuestionsFlow = ({ lang, personName, personBirthYear, onSubmit, onClose }: Props) => {
   const { user } = useAuth();
   const [phase, setPhase] = useState<"categories" | "questions">("categories");
   const [selectedCategory, setSelectedCategory] = useState<MemorialCategory | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answer, setAnswer] = useState("");
+  const [title, setTitle] = useState("");
+  const [lifePeriod, setLifePeriod] = useState<LifePeriod | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [answered, setAnswered] = useState<Set<string>>(new Set());
   const [photoUrls, setPhotoUrls] = useState<string[]>([]);
@@ -49,6 +60,8 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
   const resetExtras = () => {
     setPhotoUrls([]);
     setVoicePath(null);
+    setTitle("");
+    setLifePeriod("");
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,6 +146,8 @@ const GuidedQuestionsFlow = ({ lang, personName, onSubmit, onClose }: Props) => 
       category: currentQ.category,
       photoUrls,
       voicePath,
+      title: title.trim() || null,
+      lifePeriod: (lifePeriod || null) as LifePeriod | null,
     });
     setAnswered((prev) => new Set(prev).add(currentQ.id));
     setAnswer("");
