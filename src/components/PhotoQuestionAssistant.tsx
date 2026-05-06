@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ImagePlus, Loader2, X } from "lucide-react";
+import { Sparkles, ImagePlus, Loader2, X, Heart } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
   onPickQuestion?: (question: string) => void;
 };
 
-type Result = { observations: string[]; questions: string[] };
+type Result = { gentle_nudge?: string; observations: string[]; questions: string[] };
 
 const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -159,10 +159,34 @@ const PhotoQuestionAssistant = ({ lang, personName, onPickQuestion }: Props) => 
 
           {result && (
             <>
+              {result.gentle_nudge && (
+                <div className="relative bg-background/70 border border-primary/30 rounded-2xl p-5 shadow-soft">
+                  <Heart size={16} className="absolute -top-2 -left-2 text-primary bg-background rounded-full p-0.5" fill="currentColor" />
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-primary/80 mb-2 font-medium">
+                    {isRu ? "Мягкое напоминание" : "Gentle Nudge"}
+                  </p>
+                  <p className="font-serif-display italic text-lg leading-relaxed text-foreground">
+                    {result.gentle_nudge}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (onPickQuestion) onPickQuestion(result.gentle_nudge!);
+                      else {
+                        navigator.clipboard?.writeText(result.gentle_nudge!);
+                        toast.success(isRu ? "Скопировано" : "Copied");
+                      }
+                    }}
+                    className="mt-3 text-xs text-primary font-medium hover:underline"
+                  >
+                    {isRu ? "Использовать этот вопрос →" : "Use this prompt →"}
+                  </button>
+                </div>
+              )}
+
               {result.questions?.length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-foreground mb-3">
-                    {isRu ? "Выберите вопрос:" : "Pick a question:"}
+                    {isRu ? "Или другой вопрос:" : "Or another question:"}
                   </p>
                   <div className="space-y-2">
                     {result.questions.map((q, i) => (
