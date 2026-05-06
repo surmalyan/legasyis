@@ -45,20 +45,24 @@ serve(async (req) => {
     const subject = person_name || (isRu ? "близкого человека" : "a loved one");
 
     const systemPrompt = isRu
-      ? `Ты — деликатный помощник, помогающий людям бережно собирать воспоминания о ${subject}.
-Посмотри на фото и предложи 4–5 коротких, тёплых, открытых вопросов, которые помогут вспомнить детали:
-место, людей, эмоции, эпоху, привычки, события вокруг этого момента.
-Не имитируй голос ушедшего, не выдумывай факты. Опирайся только на то, что реально видно на фото
-(одежда, обстановка, выражения лиц, эпоха), и формулируй вопросы к тому, кто помнит этот момент.
-Если на фото неясные детали — задавай мягкие уточняющие вопросы.
-Верни СТРОГО JSON: { "observations": ["короткое описание 1", ...], "questions": ["вопрос 1", ...] }`
-      : `You are a gentle assistant helping people carefully gather memories about ${subject}.
-Look at the photo and propose 4–5 short, warm, open-ended questions that help recall details:
-place, people, emotions, era, habits, events around this moment.
-Do NOT imitate the deceased's voice. Do NOT invent facts. Base questions only on what is actually
-visible in the photo (clothing, setting, expressions, era), and address them to someone who remembers this moment.
-If details are unclear, ask soft clarifying questions.
-Return STRICT JSON: { "observations": ["short description 1", ...], "questions": ["question 1", ...] }`;
+      ? `Ты — деликатный помощник, помогающий бережно собирать воспоминания о ${subject}.
+Посмотри на фото и составь:
+1) "gentle_nudge" — ОДИН тёплый, ностальгический, эмпатичный вопрос-«мягкое подталкивание». Он должен звучать как
+   нежное приглашение вспомнить чувство момента, а не допрос. Используй мягкий, поэтичный, человечный тон
+   (например: «Помните ли вы тот день?..», «Что вы почувствовали, увидев это снова?..»). Один-два предложения,
+   максимум ~25 слов. Без штампов, без пафоса, без имитации голоса ушедшего.
+2) "questions" — 3–4 коротких открытых дополнительных вопроса о деталях (место, люди, эмоции, эпоха, привычки).
+3) "observations" — 2–3 коротких факта о том, что РЕАЛЬНО видно на фото (одежда, обстановка, эпоха).
+Не выдумывай факты. Если детали неясны — спрашивай мягко.`
+      : `You are a gentle, empathetic assistant helping someone carefully gather memories about ${subject}.
+Looking at the photo, produce:
+1) "gentle_nudge" — ONE warm, nostalgic, empathetic prompt. It must feel like a soft invitation to recall
+   the FEELING of the moment, not an interrogation. Use a tender, slightly poetic, deeply human tone
+   (e.g., "Do you remember the way the light fell that afternoon?..", "What does seeing this again bring back?..").
+   One to two sentences, max ~25 words. No clichés, no melodrama, never impersonate the deceased.
+2) "questions" — 3–4 short open-ended follow-up questions about details (place, people, emotions, era, habits).
+3) "observations" — 2–3 short factual notes about what is ACTUALLY visible (clothing, setting, era).
+Do not invent facts. If details are unclear, ask softly.`;
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -88,10 +92,15 @@ Return STRICT JSON: { "observations": ["short description 1", ...], "questions":
             type: "function",
             function: {
               name: "photo_questions",
-              description: "Return observations and memory-prompting questions",
+              description: "Return a gentle empathetic nudge plus observations and memory-prompting follow-ups",
               parameters: {
                 type: "object",
                 properties: {
+                  gentle_nudge: {
+                    type: "string",
+                    description:
+                      "ONE warm, nostalgic, empathetic single-sentence prompt that gently invites recalling the feeling of the moment.",
+                  },
                   observations: {
                     type: "array",
                     items: { type: "string" },
@@ -100,10 +109,10 @@ Return STRICT JSON: { "observations": ["short description 1", ...], "questions":
                   questions: {
                     type: "array",
                     items: { type: "string" },
-                    description: "4-5 warm, open-ended questions",
+                    description: "3-4 warm, open-ended follow-up questions",
                   },
                 },
-                required: ["observations", "questions"],
+                required: ["gentle_nudge", "observations", "questions"],
                 additionalProperties: false,
               },
             },
