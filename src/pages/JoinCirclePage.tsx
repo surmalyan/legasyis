@@ -17,6 +17,7 @@ import {
   Loader2,
   Check,
   X,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAudioRecorder } from "@/hooks/use-audio-recorder";
@@ -47,6 +48,7 @@ const JoinCirclePage = () => {
   // guest details (collected at the end)
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+  const [guestRelationship, setGuestRelationship] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -107,6 +109,38 @@ const JoinCirclePage = () => {
       ? `${ownerLabel} собирает Круг Памяти о ${personName}. Каждая история — это часть мозаики, которая хранит его наследие живым.`
       : `${ownerLabel} is gathering a Circle of Memory for ${personName}. Every story is a piece of a puzzle that keeps their legacy alive.`;
 
+  const importanceMessage =
+    lang === "ru"
+      ? `Именно вы помните ${personName} так, как никто другой. Без вашего голоса часть этой истории будет потеряна навсегда.`
+      : `You remember ${personName} in a way no one else can. Without your voice, a part of this story is lost forever.`;
+
+  const relationshipOptions =
+    lang === "ru"
+      ? [
+          "Сын / Дочь",
+          "Внук / Внучка",
+          "Брат / Сестра",
+          "Супруг(а)",
+          "Родитель",
+          "Близкий друг",
+          "Друг",
+          "Коллега",
+          "Сосед",
+          "Другое",
+        ]
+      : [
+          "Son / Daughter",
+          "Grandchild",
+          "Sibling",
+          "Spouse",
+          "Parent",
+          "Close friend",
+          "Friend",
+          "Colleague",
+          "Neighbor",
+          "Other",
+        ];
+
   const t = {
     share: lang === "ru" ? "Поделиться воспоминанием" : "Share a Memory",
     chooseHow: lang === "ru" ? "Как вы хотите поделиться?" : "How would you like to share?",
@@ -126,6 +160,11 @@ const JoinCirclePage = () => {
     addPhotos: lang === "ru" ? "Выбрать фото" : "Choose photos",
     yourName: lang === "ru" ? "Ваше имя" : "Your name",
     yourEmail: lang === "ru" ? "Email (необязательно)" : "Email (optional)",
+    yourRelationship: lang === "ru" ? "Кем вы приходитесь?" : "Who are you to them?",
+    relationshipHint:
+      lang === "ru"
+        ? "Это поможет семье понять, от кого пришло воспоминание"
+        : "This helps the family see who shared the memory",
     nameHint:
       lang === "ru"
         ? "Чтобы родные знали, от кого это воспоминание"
@@ -139,6 +178,8 @@ const JoinCirclePage = () => {
         : "Your memory has been saved. The family will be deeply grateful.",
     addAnother: lang === "ru" ? "Добавить ещё одно" : "Add another",
     nameRequired: lang === "ru" ? "Пожалуйста, укажите имя" : "Please share your name",
+    relationshipRequired:
+      lang === "ru" ? "Пожалуйста, укажите близость" : "Please choose your relationship",
     empty: lang === "ru" ? "Сначала добавьте воспоминание" : "Add a memory first",
   };
 
@@ -159,6 +200,10 @@ const JoinCirclePage = () => {
   const handleSubmit = async () => {
     if (!guestName.trim()) {
       toast.error(t.nameRequired);
+      return;
+    }
+    if (!guestRelationship.trim()) {
+      toast.error(t.relationshipRequired);
       return;
     }
     if (!canGoToDetails()) {
@@ -210,6 +255,7 @@ const JoinCirclePage = () => {
         _content: content,
         _voice_note_path: voicePath,
         _photo_urls: photoUrls.length ? photoUrls : null,
+        _guest_relationship: guestRelationship.trim() || null,
       });
       if (error) throw error;
 
@@ -230,6 +276,7 @@ const JoinCirclePage = () => {
     recorder.reset();
     setGuestName("");
     setGuestEmail("");
+    setGuestRelationship("");
     setStep("choose");
   };
 
@@ -282,6 +329,13 @@ const JoinCirclePage = () => {
             {circle.description && (
               <p className="text-sm text-muted-foreground mt-4 px-2">{circle.description}</p>
             )}
+
+            <div className="mt-6 p-4 rounded-2xl bg-primary/5 border border-primary/10 text-left flex gap-3 shadow-soft">
+              <Sparkles size={18} className="text-primary mt-0.5 shrink-0" />
+              <p className="text-sm text-foreground/80 leading-relaxed font-serif-display italic">
+                {importanceMessage}
+              </p>
+            </div>
 
             <Button
               onClick={goChoose}
@@ -508,6 +562,33 @@ const JoinCirclePage = () => {
                 className="rounded-2xl py-6 text-base shadow-soft"
                 autoFocus
               />
+              <div>
+                <p className="text-xs text-muted-foreground mb-2 px-1">
+                  {t.yourRelationship}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {relationshipOptions.map((opt) => {
+                    const active = guestRelationship === opt;
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setGuestRelationship(opt)}
+                        className={`px-3 py-2 rounded-full text-xs font-medium transition-all press border ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary shadow-soft"
+                            : "bg-card text-foreground/80 border-border hover:border-primary/40"
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-2 px-1">
+                  {t.relationshipHint}
+                </p>
+              </div>
               <Input
                 value={guestEmail}
                 onChange={(e) => setGuestEmail(e.target.value)}
@@ -519,7 +600,7 @@ const JoinCirclePage = () => {
 
             <Button
               onClick={handleSubmit}
-              disabled={submitting || !guestName.trim()}
+              disabled={submitting || !guestName.trim() || !guestRelationship.trim()}
               size="lg"
               className="w-full rounded-2xl py-6 text-base mt-8 shadow-warm press"
             >
