@@ -108,6 +108,7 @@ export type Database = {
           created_at: string
           guest_email: string | null
           guest_name: string | null
+          guest_relationship: string | null
           id: string
           life_period: string | null
           life_year: number | null
@@ -125,6 +126,7 @@ export type Database = {
           created_at?: string
           guest_email?: string | null
           guest_name?: string | null
+          guest_relationship?: string | null
           id?: string
           life_period?: string | null
           life_year?: number | null
@@ -142,6 +144,7 @@ export type Database = {
           created_at?: string
           guest_email?: string | null
           guest_name?: string | null
+          guest_relationship?: string | null
           id?: string
           life_period?: string | null
           life_year?: number | null
@@ -637,17 +640,30 @@ export type Database = {
         Returns: string
       }
       set_digital_heir: { Args: { _email: string }; Returns: undefined }
-      submit_guest_memory: {
-        Args: {
-          _content: string
-          _guest_email: string
-          _guest_name: string
-          _invite_code: string
-          _photo_urls: string[]
-          _voice_note_path: string
-        }
-        Returns: string
-      }
+      submit_guest_memory:
+        | {
+            Args: {
+              _content: string
+              _guest_email: string
+              _guest_name: string
+              _invite_code: string
+              _photo_urls: string[]
+              _voice_note_path: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              _content: string
+              _guest_email: string
+              _guest_name: string
+              _guest_relationship?: string
+              _invite_code: string
+              _photo_urls: string[]
+              _voice_note_path: string
+            }
+            Returns: string
+          }
     }
     Enums: {
       app_role: "admin" | "user"
